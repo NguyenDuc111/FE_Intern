@@ -1,0 +1,39 @@
+/* Header.css */
+.container {
+   
+     /* Căn giữa theo chiều dọc */
+    gap: 20px; /* Khoảng cách giữa các phần tử */
+  }
+  
+  .nav {
+    /* Tự động căn chỉnh ngang hàng với logo */
+  }
+
+  .container {
+    display: flex;
+    flex-wrap: wrap; /* Xuống dòng khi màn hình nhỏ */
+    align-items: center;
+  }
+
+  @keyframes modalOpen {
+    0% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  .animate-modal-show {
+    animation: modalOpen 0.3s ease-out;
+  }
+
+  
+  @media (max-width: 768px) {
+    .logo, .nav {
+      width: 100%;
+      text-align: center;
+    }
+  }

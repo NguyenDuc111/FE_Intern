@@ -1,0 +1,19 @@
+/* src/App.css */
+@import "tailwindcss";
+body {
+    margin: 0;
+    font-family: Arial;
+  }
+
+/* Trong CSS */
+
+.auth-form{
+  margin-top: 10px;
+  display: block;
+  text-align: center;
+  margin-left: 1550px;
+  text-decoration: none;
+}
+.auth-form .Link{
+  color: black;
+}
