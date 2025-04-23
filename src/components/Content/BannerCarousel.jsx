@@ -12,20 +12,18 @@ function BannerCarousel() {
       showThumbs={false}
       showStatus={false}
       interval={4000}
-      className="mb-15 mt-0 "
+      className="max-w-screen-xl mx-auto"
     >
       <div>
-        <img src={logo} style={{width:"1200px"}} alt="Banner 1" />
+        <img src={logo} alt="Banner 1" />
       </div>
       <div>
-        <img src={logo2} style={{width:"1200px"}} alt="Banner 2" />
+        <img src={logo2} alt="Banner 2" />
       </div>
       <div>
-        <img src={logo3} style={{width:"1200px"}} alt="Banner 3" />
+        <img src={logo3} alt="Banner 3" />
       </div>
-
     </Carousel>
-
   );
 }
 

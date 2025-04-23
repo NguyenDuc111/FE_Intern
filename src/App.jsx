@@ -1,11 +1,14 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import ContentComponent from "./components/Content/HomePage";
-import HomePage from "./components/Content/HomePage";
-import ProductPage from "./components/Pages/ProductPage";
+
+import Home from "./components/Content/Home"
 import Header from "./components/headerfooter/Header";
 import Footer from "./components/headerfooter/Footer";
-import InfoUser from "./components/UserPage/InforUser";
+import About from "./components/Content/About";
+import Product from "./components/Content/Product";
+import Contact from "./components/Content/Contact";
+import Profile from "./components/UserPage/Profile";
+
 
 function App() {
   return (
@@ -13,17 +16,17 @@ function App() {
       <div>
        
         {/* Cấu hình định tuyến */}
-        <Header />
+        
         <Routes>
           {/* Tự động chuyển về /login khi vào / */}
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/products" element={<ProductPage />} />
-          <Route path="/profile" element = {<InfoUser />} />
-          
-
+          <Route path="/home" element={<Home />} />
+          <Route path="/about" element={<About/>} />
+          <Route path="/product" element={<Product/>} />
+          <Route path="/contact" element={<Contact/>} />
+          <Route path="/profile" element={<Profile/>} />
         </Routes>
-        <ContentComponent />
-       <Footer></Footer>
+
+       
       </div>
     </>
   );
