@@ -1,5 +1,8 @@
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
+import logo from "../../assets/image/Cholimexb1.jpg";
+import logo2 from "../../assets/image/Cholimexb2.jpg";
+import logo3 from "../../assets/image/Cholimexb3.jpg";
 
 function BannerCarousel() {
   return (
@@ -9,18 +12,20 @@ function BannerCarousel() {
       showThumbs={false}
       showStatus={false}
       interval={4000}
-      className="mb-8"
+      className="mb-15 mt-0 "
     >
       <div>
-        <img src="/banners/banner1.jpg" alt="Banner 1" />
+        <img src={logo} style={{width:"1200px"}} alt="Banner 1" />
       </div>
       <div>
-        <img src="/banners/banner2.jpg" alt="Banner 2" />
+        <img src={logo2} style={{width:"1200px"}} alt="Banner 2" />
       </div>
       <div>
-        <img src="/banners/banner3.jpg" alt="Banner 3" />
+        <img src={logo3} style={{width:"1200px"}} alt="Banner 3" />
       </div>
+
     </Carousel>
+
   );
 }
 

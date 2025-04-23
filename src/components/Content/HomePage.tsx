@@ -52,7 +52,7 @@ export default function HomePage() {
 
   return (
     <>
-      <Header />
+     
       <div className="px-4 py-6">
         <BannerCarousel />
 
@@ -71,7 +71,7 @@ export default function HomePage() {
           ))}
         </div>
       </div>
-      <Footer />
+     
     </>
   );
 }

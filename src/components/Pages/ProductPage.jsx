@@ -1,6 +1,7 @@
 // ProductPage.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Header from "../headerfooter/Header";
 
 function ProductPage() {
   const [products, setProducts] = useState([]);
@@ -33,8 +34,9 @@ function ProductPage() {
       ? products
       : products.filter((p) => p.Category.CategoryName === activeCategory);
 
+        
   return (
-    
+      <>
     <div className="px-4 py-8 max-w-7xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-center">Sản phẩm</h1>
 
@@ -60,6 +62,7 @@ function ProductPage() {
         ))}
       </div>
     </div>
+    </>
   );
 }
 
