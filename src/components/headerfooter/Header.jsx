@@ -5,6 +5,7 @@ import "../headerfooter/Header.css";
 import { login, register } from "../../api/api.js";
 import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { jwtDecode } from "jwt-decode";
 
 function Header() {
   const [showLogin, setShowLogin] = useState(false);
@@ -54,7 +55,7 @@ function Header() {
     const loggedOut = sessionStorage.getItem("loggedOut");
     if (loggedOut === "true") {
       toast.info("Đã đăng xuất thành công.");
-      sessionStorage.removeItem("loggedOut"); // xóa để không hiện lại
+      sessionStorage.removeItem("loggedOut");
     }
   }, []);
 
@@ -82,9 +83,10 @@ function Header() {
           toast.error("Đăng nhập thất bại: Không nhận được token.");
           return;
         }
+        const decoded = jwtDecode(token);
         localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify({ loggedIn: true }));
-        setUser({ loggedIn: true });
+        localStorage.setItem("user", JSON.stringify(decoded));
+        setUser(decoded);
         setShowLogin(false);
         toast.success("Đăng nhập thành công!");
         navigate("/home");
@@ -135,54 +137,49 @@ function Header() {
         style={{ zIndex: 99999 }}
       />
       <header className="w-full bg-gray-300 z-50 relative">
-  <div className="w-full flex items-center justify-between px-4 py-7 relative">
-
-    {/* Logo sát trái */}
-    <div className="flex-shrink-0 absolute left-4 top-1/2 -translate-y-1/2">
-      <Link to="/home" className="logo">
-        <img
-          src={logo}
-          alt="Cholimex"
-          className="w-[105px] h-auto rounded-md"
-        />
-      </Link>
-    </div>
-
-    {/* Menu canh giữa */}
-    <nav className="flex-1 flex justify-center gap-15">
-      <Link to="/home" className="text-sm font-bold uppercase text-[#dd3333]">Trang chủ</Link>
-      <Link to="/about" className="text-sm font-bold uppercase text-black hover:text-[#dd3333]">Giới thiệu</Link>
-      <Link to="/product" className="text-sm font-bold uppercase text-black hover:text-[#dd3333]">Sản phẩm</Link>
-      <Link to="/contact" className="text-sm font-bold uppercase text-black hover:text-[#dd3333]">Thư viện ẩm thực</Link>
-      <Link to="/contact" className="text-sm font-bold uppercase text-black hover:text-[#dd3333]">40 năm</Link>
-    </nav>
-
-    {/* Login/User sát phải */}
-    <div className="absolute right-4 top-1/2 -translate-y-1/2" ref={dropdownRef}>
-      {user ? (
-        <div className="cursor-pointer select-none" onClick={() => setDropdownOpen(!isDropdownOpen)}>
-          <div className="flex items-center gap-1 text-sm font-bold uppercase text-black hover:text-[#dd3333]">
-            <span role="img" aria-label="user">👤</span>
-            <span>Xin Chào, Name</span>
+        <div className="w-full flex items-center justify-between px-4 py-7 relative">
+          <div className="flex-shrink-0 absolute left-4 top-1/2 -translate-y-1/2">
+            <Link to="/home" className="logo">
+              <img
+                src={logo}
+                alt="Cholimex"
+                className="w-[105px] h-auto rounded-md"
+              />
+            </Link>
           </div>
-          {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md z-10">
-              <Link to="/profile">
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Thông tin tài khoản</button>
-              </Link>
-              <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-100">Đăng xuất</button>
-            </div>
-          )}
-        </div>
-      ) : (
-        <button onClick={toggleLogin} className="text-sm font-bold uppercase text-black hover:text-[#dd3333]">
-          Đăng Nhập
-        </button>
-      )}
-    </div>
-  </div>
-</header>
 
+          <nav className="flex-1 flex justify-center gap-15">
+            <Link to="/home" className="text-sm font-bold uppercase text-[#dd3333]">Trang chủ</Link>
+            <Link to="/about" className="text-sm font-bold uppercase text-black hover:text-[#dd3333]">Giới thiệu</Link>
+            <Link to="/products" className="text-sm font-bold uppercase text-black hover:text-[#dd3333]">Sản phẩm</Link>
+            <Link to="/contact" className="text-sm font-bold uppercase text-black hover:text-[#dd3333]">Thư viện ẩm thực</Link>
+            <Link to="/contact" className="text-sm font-bold uppercase text-black hover:text-[#dd3333]">40 năm</Link>
+          </nav>
+
+          <div className="absolute right-4 top-1/2 -translate-y-1/2" ref={dropdownRef}>
+            {user ? (
+              <div className="cursor-pointer select-none" onClick={() => setDropdownOpen(!isDropdownOpen)}>
+                <div className="flex items-center gap-1 text-sm font-bold uppercase text-black hover:text-[#dd3333]">
+                  <span role="img" aria-label="user">👤</span>
+                  <span>Xin chào, {user?.name || user?.email || "User"}</span>
+                </div>
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md z-10">
+                    <Link to="/profile">
+                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Thông tin tài khoản</button>
+                    </Link>
+                    <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-100">Đăng xuất</button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button onClick={toggleLogin} className="text-sm font-bold uppercase text-black hover:text-[#dd3333]">
+                Đăng Nhập
+              </button>
+            )}
+          </div>
+        </div>
+      </header>
 
       {showLogin && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
@@ -207,15 +204,9 @@ function Header() {
             </form>
             <div className="text-center mt-4 text-sm">
               {mode === "login" ? (
-                <p>
-                  Chưa có tài khoản?{" "}
-                  <button onClick={() => setMode("register")} className="text-[#dd3333] font-semibold hover:underline">Đăng ký</button>
-                </p>
+                <p>Chưa có tài khoản? <button onClick={() => setMode("register")} className="text-[#dd3333] font-semibold hover:underline">Đăng ký</button></p>
               ) : (
-                <p>
-                  Đã có tài khoản?{" "}
-                  <button onClick={() => setMode("login")} className="text-[#dd3333] font-semibold hover:underline">Đăng nhập</button>
-                </p>
+                <p>Đã có tài khoản? <button onClick={() => setMode("login")} className="text-[#dd3333] font-semibold hover:underline">Đăng nhập</button></p>
               )}
             </div>
           </div>

@@ -30,8 +30,8 @@ function Footer() {
         {/* Cột 3: Chứng nhận */}
         <div className="footer-column">
           <h3>CÁC CHỨNG NHẬN</h3>
-          <div className="footer-images">
-            <img src={logo} alt="Huân chương" />
+          <div className="footer-images w-1" >
+            <img src={logo} alt="Huân chương" style={{w100}} />
             
           <img src={logoo}alt="Đã thông báo BCT" />
 

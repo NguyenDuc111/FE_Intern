@@ -45,3 +45,12 @@ export const forgotPassword = (email) =>
 
 export const getAllProducts = () => API.get('/products');
 
+
+// ==== USERPROFILE
+
+// Lấy thông tin người dùng
+export const getUserProfile = (userId) => API.get(`/user-profile/${userId}`);
+
+// Cập nhật thông tin người dùng
+export const updateUserProfile = (userId, data) => API.put(`/update-profile/${userId}`, data);
+
