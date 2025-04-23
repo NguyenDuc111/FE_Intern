@@ -43,7 +43,7 @@ export const forgotPassword = (email) =>
 // === PRODUCT
 
 
-export const getAllProducts = () => API.get('/products');
+export const getAllProducts = () => API.get("/products");
 
 
 // ==== USERPROFILE

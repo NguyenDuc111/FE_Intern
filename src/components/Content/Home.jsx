@@ -4,13 +4,28 @@ import logo from "../../assets/image/imageCholimex.jpg";
 import image1 from "../../assets/image/image1.jpg";
 import image2 from "../../assets/image/image2.jpg";
 import image3 from "../../assets/image/image3.png";
+import { useEffect, useState } from "react";
+import { getAllProducts } from "../../api/api";
 
 function Home() {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    getAllProducts()
+      .then((res) => {
+        const sorted = res.data
+          .filter(product => product.CreatedAt)
+          .sort((a, b) => new Date(b.CreatedAt) - new Date(a.CreatedAt));
+        setProducts(sorted.slice(0, 8));
+      })
+      .catch((err) => console.error("Lỗi khi tải sản phẩm:", err));
+  }, []);
+
   return (
     <CholimexLayout>
       <BannerCarousel />
 
-      {/* Giới thiệu */}
+      {/* Giới thiệu Cholimex */}
       <section className="py-10">
         <div className="max-w-screen-xl mx-auto px-4">
           <h2 className="text-3xl font-bold mb-4 text-[#dd3333]">
@@ -39,19 +54,12 @@ function Home() {
       {/* Hình ảnh và mô tả */}
       <section className="py-10 bg-gray-100">
         <div className="max-w-screen-xl mx-auto px-4 space-y-12">
-          {[
-            { img: image1, text: "Đa dạng sản phẩm chất lượng" },
-            {
-              img: image2,
-              text: "aloaloalo",
-            },
-            { img: image3, text: "Thương hiệu quốc gia" },
-          ].map((item, index) => (
+          {[{ img: image1, text: "Đa dạng sản phẩm chất lượng" },
+            { img: image2, text: "Công nghệ hiện đại" },
+            { img: image3, text: "Thương hiệu quốc gia" }].map((item, index) => (
             <div
               key={index}
-              className={`flex flex-col md:flex-row ${
-                index % 2 === 0 ? "md:flex-row-reverse" : ""
-              } items-center gap-6`}
+              className={`flex flex-col md:flex-row ${index % 2 === 0 ? "md:flex-row-reverse" : ""} items-center gap-6`}
             >
               <img
                 src={item.img}
@@ -73,20 +81,21 @@ function Home() {
             Sản phẩm mới
           </h2>
           <div className="flex overflow-x-auto gap-4 pb-4">
-            {[...Array(8)].map((_, i) => (
+            {products.map((product) => (
               <div
-                key={i}
+                key={product.ProductID}
                 className="min-w-[200px] bg-white rounded shadow-md p-4 flex-shrink-0"
               >
                 <img
-                  src={`https://via.placeholder.com/200x150?text=Product+${
-                    i + 1
-                  }`}
-                  alt={`Sản phẩm ${i + 1}`}
-                  className="mb-2 rounded"
+                  src={product.ImageURL}
+                  alt={product.ProductName}
+                  className="mb-2 rounded w-full h-[150px] object-cover"
                 />
                 <p className="text-center text-sm font-semibold">
-                  Sản phẩm {i + 1}
+                  {product.ProductName}
+                </p>
+                <p className="text-center text-sm text-gray-500">
+                  {product.Price?.toLocaleString()} VND
                 </p>
               </div>
             ))}
