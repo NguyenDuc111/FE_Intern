@@ -1,11 +1,9 @@
-// src/api/api.js
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:8080/", // sửa nếu server chạy port khác
+  baseURL: "http://localhost:8080/", // sửa lại nếu server chạy port khác
 });
 
-// ✅ Gắn token vào tất cả request nếu có
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -30,31 +28,15 @@ export const register = (data) =>
     Address: data.address,
   });
 
-// === PROTECTED (cần token) ===
-export const changePassword = (data) =>
-  API.post("/change-password", {
-    OldPassword: data.oldPassword,
-    NewPassword: data.newPassword,
-  });
-
-export const forgotPassword = (email) =>
-  API.post("/forgot-password", { Email: email });
-
-// === PRODUCT
-
-
+// === PRODUCT ===
 export const getAllProducts = () => API.get("/products");
 
+export const getProductsByCategoryId = (id) =>
+  API.get(`/categories/${id}/products`);
 
-// ==== USERPROFILE
+export const getAllCategories = () => API.get("/categories");
 
-// Lấy thông tin người dùng
+// === USER PROFILE ===
 export const getUserProfile = (userId) => API.get(`/user-profile/${userId}`);
-
-// Cập nhật thông tin người dùng
-export const updateUserProfile = (userId, data) => API.put(`/update-profile/${userId}`, data);
-
-// Promotion( Khuyến mãi )
-
-
-
+export const updateUserProfile = (userId, data) =>
+  API.put(`/update-profile/${userId}`, data);
