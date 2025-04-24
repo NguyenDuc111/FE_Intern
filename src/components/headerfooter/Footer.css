@@ -25,11 +25,13 @@
   }
   
   .footer-column h3 {
-    font-size: 18px;
+    font-size: 16px;
     margin-bottom: 15px;
     color: #000;
     border-bottom: 2px solid #ccc;
     padding-bottom: 5px;
+    
+   
   }
   
   .footer-column p,
@@ -74,6 +76,9 @@
     width: 100%;
    
   }
+
+
+  
   
   /* ===== Responsive ===== */
   @media (max-width: 768px) {

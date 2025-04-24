@@ -3,17 +3,19 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Home from "./components/Content/Home"
 import About from "./components/Content/About";
-import Product from "./components/Content/Product";
+import Product from "./components/Content/Categories";
 import Contact from "./components/Content/Contact";
 import Profile from "./components/UserPage/Profile";
-import ProductPage from "./components/Pages/ProductPage";
+import Categories from "./components/Content/Categories";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 function App() {
   return (
     <>
       <div>
-       
+      <ToastContainer position="top-center" autoClose={3000} />
         {/* Cấu hình định tuyến */}
         
         <Routes>
@@ -21,10 +23,9 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/about" element={<About/>} />
-          <Route path="/product" element={<Product/>} />
           <Route path="/contact" element={<Contact/>} />
           <Route path="/profile" element={<Profile/>} />
-          <Route path="/products" element={<ProductPage/>} />
+          <Route path="/categories" element={<Categories/>} />
         </Routes>
 
        
