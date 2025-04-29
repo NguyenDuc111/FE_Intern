@@ -1,12 +1,13 @@
-// src/components/Layout/Header.jsx
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/image/logo-english.jpg";
-import { login, register } from "../../api/api.js";
+import { login, register, getCartAPI } from "../../api/api.js";
 import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { jwtDecode } from "jwt-decode";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ShoppingCart } from "lucide-react";
+import MiniCart from "./MiniCart.jsx";
+import Notification from "./Notification";
 
 function Header() {
   const [showLogin, setShowLogin] = useState(false);
@@ -14,6 +15,7 @@ function Header() {
   const [user, setUser] = useState(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showMiniCart, setShowMiniCart] = useState(false);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -21,11 +23,28 @@ function Header() {
     phone: "",
     address: "",
   });
+  const [cartItems, setCartItems] = useState([]);
+  // Đếm số sản phẩm khác nhau (không tính tổng quantity)
+  const totalQty = cartItems.length;
 
   const modalRef = useRef();
   const dropdownRef = useRef();
   const mobileMenuRef = useRef();
   const navigate = useNavigate();
+
+  // Thêm reloadCart để load lại giỏ
+  const reloadCart = () => {
+    const token = localStorage.getItem("token");
+    if (user && token) {
+      getCartAPI(user.UserID, token)
+        .then((res) => {
+          setCartItems(res.data.cartItems || []);
+        })
+        .catch((err) => {
+          console.error("Lỗi khi lấy giỏ hàng:", err);
+        });
+    }
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -38,12 +57,20 @@ function Header() {
     }
   }, []);
 
+  useEffect(() => {
+    reloadCart();
+  }, [user]);
+
+  // Thêm useEffect nghe event "cartUpdated" để reload cart
+  useEffect(() => {
+    const handleCartUpdate = () => {
+      reloadCart();
+    };
+    window.addEventListener("cartUpdated", handleCartUpdate);
+    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
+  }, [user]);
+
   const toggleLogin = () => setShowLogin((prev) => !prev);
-  const handleClickOutside = (event) => {
-    if (modalRef.current && !modalRef.current.contains(event.target)) {
-      setShowLogin(false);
-    }
-  };
 
   const handleLogout = () => {
     const id = toast.loading("Đang đăng xuất...");
@@ -112,7 +139,6 @@ function Header() {
           isLoading: false,
           autoClose: 2000,
         });
-
         setTimeout(() => navigate("/home"), 3000);
       }
 
@@ -127,30 +153,16 @@ function Header() {
   };
 
   useEffect(() => {
-    if (showLogin) {
-      document.body.style.overflow = "hidden";
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.body.style.overflow = "auto";
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.body.style.overflow = "auto";
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showLogin]);
-
-  useEffect(() => {
     const handleOutsideClick = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (modalRef.current && !modalRef.current.contains(event.target))
+        setShowLogin(false);
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target))
         setDropdownOpen(false);
-      }
       if (
         mobileMenuRef.current &&
         !mobileMenuRef.current.contains(event.target)
-      ) {
+      )
         setMobileMenuOpen(false);
-      }
     };
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
@@ -167,6 +179,7 @@ function Header() {
         transition={Slide}
         style={{ zIndex: 99999 }}
       />
+
       <header className="w-full bg-gray-300 z-50 shadow-sm sticky top-0">
         <div className="flex items-center justify-between px-0 py-2 max-w-screen-xl mx-auto relative">
           <Link to="/home" className="flex-shrink-0 pl-4">
@@ -177,7 +190,7 @@ function Header() {
             />
           </Link>
 
-          {/* Mobile Buttons */}
+          {/* Mobile Login + Menu */}
           <div className="md:hidden flex gap-2 items-center pr-4">
             {!user && (
               <button
@@ -220,13 +233,22 @@ function Header() {
             {user && (
               <div className="block md:hidden mt-4 space-y-1 w-full">
                 <button
-                  onClick={() => {
-                    navigate("/profile");
-                  }}
+                  onClick={() => navigate("/profile")}
                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
                   Thông tin tài khoản
                 </button>
+                <Link
+                  to="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toast.info("Đang chuyển đến giỏ hàng...");
+                    setTimeout(() => navigate("/cart"), 1500);
+                  }}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  Giỏ hàng
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -237,56 +259,102 @@ function Header() {
             )}
           </nav>
 
-          {/* Desktop: Đăng nhập & Dropdown */}
-          <div className="hidden md:block pr-4" ref={dropdownRef}>
-            {!user && (
+          {/* Desktop: Cart + Dropdown */}
+          <div
+            className="hidden md:flex items-center gap-4 pr-4"
+            ref={dropdownRef}
+          >
+            <div
+              className="relative"
+              onMouseEnter={() => setShowMiniCart(true)}
+              onMouseLeave={() => setShowMiniCart(false)}
+            >
+              {showMiniCart && (
+                <div
+                  className="absolute right-0 top-full z-50 mt-2 w-[300px]"
+                  onMouseEnter={() => setShowMiniCart(true)}
+                  onMouseLeave={() => setShowMiniCart(false)}
+                >
+                  <MiniCart />
+                </div>
+              )}
+            </div>
+
+            {!user ? (
               <button
                 onClick={toggleLogin}
                 className="text-sm font-medium uppercase text-black hover:text-[#dd3333]"
               >
                 Đăng nhập
               </button>
-            )}
-            {user && (
-              <div
-                className="cursor-pointer select-none"
-                onClick={() => setDropdownOpen(!isDropdownOpen)}
-              >
-                <div className="flex items-center gap-1 text-sm font-medium uppercase text-black hover:text-[#dd3333]">
-                  <span role="img" aria-label="user">
-                    👤
-                  </span>
-                  <span>
-                    Xin chào,&nbsp;
-                    {(user?.name || user?.email || "User").length > 15
-                      ? (user?.name || user?.email || "User").slice(0, 15) +
-                        "..."
-                      : user?.name || user?.email || "User"}
+            ) : (
+              <div className="flex items-center gap-4">
+                {/* 🔔 Notification icon */}
+                <div className="relative cursor-pointer -translate-x-2 ">
+                  <Notification />
+                  <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    2
                   </span>
                 </div>
-                {isDropdownOpen && (
-                  <div className="absolute right-4 mt-2 w-48 bg-white shadow-lg rounded-md z-50">
-                    <button
-                      onClick={() => navigate("/profile")}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      Thông tin tài khoản
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      Đăng xuất
-                    </button>
+
+                {/* 🛒 Cart icon */}
+                <Link
+                  to="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toast.info("Đang chuyển đến giỏ hàng...");
+                    setTimeout(() => navigate("/cart"), 1500);
+                  }}
+                  className="relative text-black hover:text-[#dd3333]"
+                >
+                  <ShoppingCart size={28} />
+                  {totalQty > 0 && (
+                    <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {totalQty}
+                    </span>
+                  )}
+                </Link>
+
+                {/* 👤 Xin chào, User */}
+                <div
+                  className="cursor-pointer select-none"
+                  onClick={() => setDropdownOpen(!isDropdownOpen)}
+                >
+                  <div className="flex items-center gap-1 text-sm font-medium uppercase text-black hover:text-[#dd3333] whitespace-nowrap">
+                    <span role="img" aria-label="user">
+                      👤
+                    </span>
+                    <span>
+                      Xin chào,{" "}
+                      {user?.name?.split(" ").slice(-1)[0] ||
+                        user?.email?.split("@")[0] ||
+                        "User"}
+                    </span>
                   </div>
-                )}
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md z-50">
+                      <button
+                        onClick={() => navigate("/profile")}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
+                        Thông tin tài khoản
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
+                        Đăng xuất
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
         </div>
       </header>
 
-      {/* Modal Login/Register */}
+      {/* Modal đăng nhập/đăng ký */}
       {showLogin && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
           <div
