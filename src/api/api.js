@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:8080/", // sửa lại nếu server chạy port khác
+  baseURL: "http://localhost:8080/",
 });
 
 API.interceptors.request.use((config) => {
@@ -36,10 +36,9 @@ export const getProductsByCategoryId = (id) =>
 
 export const getAllCategories = () => API.get("/categories");
 
-export const getProductById = () => API.get("/product/:id");
+export const getProductById = (id) => API.get(`/product/${id}`);
 
-// === CART
-// Thêm sản phẩm vào giỏ hàng
+// === CART ===
 export const addToCartAPI = (data, token) =>
   API.post("/cart-add", data, {
     headers: { Authorization: `Bearer ${token}` },
@@ -64,7 +63,22 @@ export const removeCartItemAPI = (cartId, token) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
+// === ORDER ===
+export const createOrderAPI = (data, token) =>
+  API.post("/order-add", data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
+export const processPaymentAPI = (data, token) =>
+  API.post("/payment", data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+// === LOYALTY POINTS ===
+export const getLoyaltyPointsAPI = (token) =>
+  API.get("/point", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
 // === USER PROFILE ===
 export const getUserProfile = (userId) => API.get(`/user-profile/${userId}`);
@@ -72,7 +86,6 @@ export const updateUserProfile = (userId, data) =>
   API.put(`/update-profile/${userId}`, data);
 
 // === WISHLIST ===
-
 export const getWishlistAPI = (token) =>
   API.get("/wishlist-all", {
     headers: { Authorization: `Bearer ${token}` },

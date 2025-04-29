@@ -11,6 +11,8 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Cart from "./components/Content/Cart";
 import ProductDetail from "./components/Content/ProductDetail";
+import PaymentSuccess from "./components/Content/PaymentSuccess";
+import PaymentFailed from "./components/Content/PaymentFailed";
 
 
 function App() {
@@ -30,6 +32,8 @@ function App() {
           <Route path="/categories" element={<Categories/>} />
           <Route path="/cart" element={<Cart/>} />
           <Route path="/Product-detail" element={<ProductDetail/>} />
+          <Route path="/payment/success" element={<PaymentSuccess/>} />
+          <Route path="/payment/failed" element={<PaymentFailed/>} />
         </Routes>
 
        
