@@ -36,7 +36,7 @@ export const getProductsByCategoryId = (id) =>
 
 export const getAllCategories = () => API.get("/categories");
 
-export const getProductById = () => API.get("/product/:id");
+export const getProductById = (id) => API.get(`/product/${id}`);
 
 // === CART
 // Thêm sản phẩm vào giỏ hàng

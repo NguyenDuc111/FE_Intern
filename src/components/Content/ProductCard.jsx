@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   getAllProducts,
   addToCartAPI,
@@ -18,7 +19,7 @@ function ProductCard({ selectedCategory, sortType }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const productsPerPage = 15;
-
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const user = token ? JSON.parse(localStorage.getItem("user")) : null;
 
@@ -156,7 +157,8 @@ function ProductCard({ selectedCategory, sortType }) {
           return (
             <div
               key={p.ProductID}
-              className="bg-white border rounded-lg p-3 shadow-md hover:shadow-xl transition flex flex-col relative group"
+              onClick={() => navigate(`/product/${p.ProductID}`)}
+              className="cursor-pointer bg-white border rounded-lg p-3 shadow-md hover:shadow-xl transition flex flex-col relative group"
             >
               <div className="relative">
                 <img
@@ -206,7 +208,10 @@ function ProductCard({ selectedCategory, sortType }) {
 
               <div className="flex justify-end mt-auto gap-2">
                 <button
-                  onClick={() => toggleWishlist(p)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Ngăn lan sự kiện ra thẻ cha
+                    toggleWishlist(p); // Gọi hàm thêm yêu thích
+                  }}
                   title="Yêu thích"
                   className={`p-2 rounded-full border transition hover:scale-110 ${
                     isFavorite
@@ -222,7 +227,10 @@ function ProductCard({ selectedCategory, sortType }) {
                 </button>
 
                 <button
-                  onClick={() => handleAddToCart(p)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Ngăn sự kiện lan lên card sản phẩm
+                    handleAddToCart(p); // Xử lý thêm vào giỏ
+                  }}
                   title="Thêm vào giỏ"
                   className="p-2 rounded-full border border-gray-300 hover:bg-[#dd3333] hover:text-white transition hover:scale-110"
                 >

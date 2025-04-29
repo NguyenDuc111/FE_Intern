@@ -1,18 +1,40 @@
 import { useState, useEffect } from "react";
-import { Star } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Star } from "lucide-react";
 import CholimexLayout from "../Layout/CholimexLayout";
-import { useNavigate } from "react-router-dom";
+import { getProductById, addToCartAPI, getAllProducts } from "../../api/api";
 
 function ProductDetail() {
-  const [rating] = useState(4.5);
-  const [user, setUser] = useState(null);
-  const [wishlist, setWishlist] = useState([]);
-  const [stockQuantity, setStockQuantity] = useState(5); // giả lập có 5 sản phẩm còn trong kho
+  const { id } = useParams();
   const navigate = useNavigate();
+  const [product, setProduct] = useState(null);
+  const [wishlist, setWishlist] = useState([]);
+  const [user, setUser] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [rating] = useState(4.5); // tạm thời cố định
 
-  const productId = "P001"; // giả lập ProductID
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await getProductById(id);
+        const productData = res.data;
+        setProduct(productData);
+
+        // Lấy sản phẩm tương tự không dựa vào danh mục
+        const allProducts = await getAllProducts();
+        const filtered = allProducts.data.filter(
+          (p) => p.ProductID !== productData.ProductID
+        );
+        setRelatedProducts(filtered.slice(0, 4));
+      } catch (error) {
+        console.error("Lỗi khi lấy sản phẩm:", error);
+        toast.error("Không thể tải sản phẩm", { position: "top-center" });
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -26,7 +48,15 @@ function ProductDetail() {
     }
   }, []);
 
-  const isWishlisted = wishlist.includes(productId);
+  if (!product) {
+    return (
+      <div className="text-center py-10 text-gray-500 text-lg">
+        Đang tải sản phẩm...
+      </div>
+    );
+  }
+
+  const isWishlisted = wishlist.includes(product.ProductID);
 
   const handleToggleWishlist = () => {
     if (!user) {
@@ -36,34 +66,60 @@ function ProductDetail() {
       return;
     }
 
-    let updatedWishlist = [];
+    const updated = isWishlisted
+      ? wishlist.filter((id) => id !== product.ProductID)
+      : [...wishlist, product.ProductID];
 
-    if (isWishlisted) {
-      updatedWishlist = wishlist.filter((id) => id !== productId);
-      toast.info("Đã bỏ yêu thích sản phẩm!", { position: "top-center" });
-    } else {
-      updatedWishlist = [...wishlist, productId];
-      toast.success("Đã thêm vào danh sách yêu thích!", {
-        position: "top-center",
-      });
-    }
+    setWishlist(updated);
+    localStorage.setItem("wishlist", JSON.stringify(updated));
 
-    setWishlist(updatedWishlist);
-    localStorage.setItem("wishlist", JSON.stringify(updatedWishlist));
+    toast[isWishlisted ? "info" : "success"](
+      isWishlisted
+        ? "Đã bỏ yêu thích sản phẩm!"
+        : "Đã thêm vào danh sách yêu thích!",
+      { position: "top-center" }
+    );
   };
 
-  const handleAddToCart = () => {
-    if (stockQuantity <= 0) {
+  const handleAddToCart = async () => {
+    if (!user) {
+      toast.error("Bạn cần đăng nhập để thêm vào giỏ hàng!", {
+        position: "top-center",
+      });
+      return;
+    }
+
+    if (product.StockQuantity <= 0) {
       toast.error("Sản phẩm đã hết hàng!", { position: "top-center" });
       return;
     }
-    toast.success("Đã thêm sản phẩm vào giỏ hàng!", { position: "top-center" });
+
+    try {
+      await addToCartAPI(
+        {
+          UserID: user.UserID,
+          ProductID: product.ProductID,
+          Quantity: 1,
+        },
+        localStorage.getItem("token")
+      );
+
+      toast.success("Đã thêm sản phẩm vào giỏ hàng!", {
+        position: "top-center",
+      });
+
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch (error) {
+      console.error("Lỗi khi thêm vào giỏ:", error);
+      toast.error("Thêm vào giỏ hàng thất bại!", {
+        position: "top-center",
+      });
+    }
   };
 
   return (
     <CholimexLayout>
       <div className="max-w-screen-xl mx-auto px-4 py-8">
-        {/* Nút quay lại */}
         <button
           onClick={() => navigate(-1)}
           className="mb-6 flex items-center text-[#dd3333] hover:underline text-sm font-medium"
@@ -72,30 +128,34 @@ function ProductDetail() {
         </button>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Hình ảnh sản phẩm */}
           <div>
             <img
-              src="https://via.placeholder.com/500"
-              alt="Sản phẩm"
+              src={
+                product.ImageURL || "https://source.unsplash.com/500x500?food"
+              }
+              alt={product.ProductName}
               className="w-full rounded-lg object-cover"
             />
           </div>
 
-          {/* Thông tin sản phẩm */}
           <div className="flex flex-col gap-4">
-            <h1 className="text-3xl font-bold">Tên Sản Phẩm</h1>
-            <p className="text-2xl text-[#dd3333] font-semibold">199.000₫</p>
+            <h1 className="text-3xl font-bold">{product.ProductName}</h1>
+            <p className="text-2xl text-[#dd3333] font-semibold">
+              {Number(product.Price).toLocaleString("vi-VN", {
+                style: "currency",
+                currency: "VND",
+                minimumFractionDigits: 0,
+              })}
+            </p>
 
-            {/* Tồn kho */}
             <div className="text-sm font-semibold text-gray-700">
-              {stockQuantity > 0 ? (
-                <span>Kho: {stockQuantity} sản phẩm</span>
+              {product.StockQuantity > 0 ? (
+                <span>Kho: {product.StockQuantity} sản phẩm</span>
               ) : (
                 <span className="text-red-500">Hết hàng</span>
               )}
             </div>
 
-            {/* Đánh giá */}
             <div className="flex items-center gap-1">
               {Array.from({ length: 5 }).map((_, idx) => (
                 <Star
@@ -108,27 +168,19 @@ function ProductDetail() {
               <span className="text-sm text-gray-600 ml-2">{rating} / 5</span>
             </div>
 
-            {/* Mô tả dài */}
-            <div className="text-2xl font-bold text-center">
-              Mô Tả Sản Phẩm
-            </div>
-            <div className="text-gray-700 leading-relaxed space-y-2">
-              <p>
-                Đây là sản phẩm chất lượng cao, được sản xuất theo quy trình
-                hiện đại, an toàn thực phẩm. Thích hợp sử dụng hàng ngày cho gia
-                đình bạn.
-              </p>
-              <p>
-                Sản phẩm mang hương vị đậm đà, thơm ngon tự nhiên, giúp bữa ăn
-                của bạn thêm phần hấp dẫn. Hãy trải nghiệm ngay hôm nay!
-              </p>
-              <p>
-                Thành phần: Bột mì, gia vị, nước tương, ớt, dầu mè và các nguyên
-                liệu tự nhiên khác.
-              </p>
+            <div className="text-gray-700 leading-relaxed space-y-2 whitespace-pre-line">
+              {product.Description}
             </div>
 
-            {/* Nút yêu thích và thêm giỏ hàng */}
+            {product.Ingredients && (
+              <div className="mt-4">
+                <h3 className="font-semibold text-gray-700">Thành phần:</h3>
+                <p className="text-gray-600 whitespace-pre-line">
+                  {product.Ingredients}
+                </p>
+              </div>
+            )}
+
             <div className="flex gap-4 mt-6">
               <button
                 onClick={handleToggleWishlist}
@@ -143,9 +195,9 @@ function ProductDetail() {
 
               <button
                 onClick={handleAddToCart}
-                disabled={stockQuantity <= 0}
+                disabled={product.StockQuantity <= 0}
                 className={`flex items-center gap-2 px-5 py-2 rounded-lg font-semibold transition ${
-                  stockQuantity <= 0
+                  product.StockQuantity <= 0
                     ? "bg-gray-400 text-white cursor-not-allowed"
                     : "bg-[#dd3333] text-white hover:bg-red-600"
                 }`}
@@ -156,36 +208,42 @@ function ProductDetail() {
           </div>
         </div>
 
-        {/* Sản phẩm tương tự */}
-        <div className="mt-12">
-  <h2 className="text-2xl font-bold mb-6 text-[#dd3333]">Sản phẩm tương tự</h2>
-  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-    {[1, 2, 3, 4].map((item) => (
-      <div
-        key={item}
-        className="bg-white rounded-lg overflow-hidden shadow-md transform transition-transform duration-300 hover:scale-105 hover:shadow-xl cursor-pointer"
-      >
-        <img
-          src="https://via.placeholder.com/200"
-          alt={`Sản phẩm ${item}`}
-          className="w-full h-[150px] object-cover"
-        />
-        <div className="p-4 text-center">
-          <p className="text-sm font-semibold">Sản phẩm {item}</p>
-          <p className="text-gray-500 text-sm mt-1">99.000₫</p>
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
-
-        {/* Bình luận */}
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6 text-[#dd3333]">
-            Đánh giá và Bình luận
+            Sản phẩm tương tự
           </h2>
+
+          {relatedProducts.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {relatedProducts.map((item) => (
+                <div
+                  key={item.ProductID}
+                  onClick={() => navigate(`/product/${item.ProductID}`)}
+                  className="bg-white rounded-lg overflow-hidden shadow-md transform transition-transform duration-300 hover:scale-105 hover:shadow-xl cursor-pointer"
+                >
+                  <img
+                    src={item.ImageURL}
+                    alt={item.ProductName}
+                    className="w-full h-[150px] object-cover"
+                  />
+                  <div className="p-4 text-center">
+                    <p className="text-sm font-semibold">{item.ProductName}</p>
+                    <p className="text-gray-500 text-sm mt-1">
+                      {Number(item.Price).toLocaleString("vi-VN")}₫
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">Không có sản phẩm tương tự.</p>
+          )}
+        </div>
+
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-6 text-[#dd3333]">Bình luận</h2>
           <div className="text-gray-600">
-            (Phần này sẽ hiển thị sau khi kết nối API và người dùng đã mua hàng)
+            (Sẽ hiển thị sau khi kết nối API và người dùng đã mua hàng)
           </div>
         </div>
       </div>
