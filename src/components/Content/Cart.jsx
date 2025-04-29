@@ -1,19 +1,58 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import CholimexLayout from "../Layout/CholimexLayout";
 import {
   getCartAPI,
   updateCartAPI,
   removeCartItemAPI,
+  createOrderAPI,
+  processPaymentAPI,
+  getLoyaltyPointsAPI,
 } from "../../api/api";
 import { toast } from "react-toastify";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [voucher, setVoucher] = useState("");
-  const [discount, setDiscount] = useState(0);
-  const [voucherStatus, setVoucherStatus] = useState(null); // thêm dòng trạng thái
+  const [pointsUsed, setPointsUsed] = useState(0);
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [shippingAddress, setShippingAddress] = useState("");
+  const [orderDetails, setOrderDetails] = useState(null);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const status = searchParams.get("status");
+    const orderId = searchParams.get("orderId");
+    const message = searchParams.get("message");
+    const vnp_TransactionStatus = searchParams.get("vnp_TransactionStatus");
+    const vnp_TxnRef = searchParams.get("vnp_TxnRef");
+
+    if (status === "success" && orderId) {
+      toast.success(`Thanh toán đơn hàng #${orderId} thành công!`);
+    } else if (status === "failed" && orderId) {
+      toast.error(
+        message
+          ? `Thanh toán đơn hàng #${orderId} thất bại: ${decodeURIComponent(
+              message
+            )}`
+          : `Thanh toán đơn hàng #${orderId} thất bại.`
+      );
+    } else if (vnp_TransactionStatus && vnp_TxnRef) {
+      if (vnp_TransactionStatus === "00") {
+        navigate(`/payment/success?orderId=${vnp_TxnRef}&status=success`);
+      } else {
+        navigate(
+          `/payment/failed?orderId=${vnp_TxnRef}&status=failed&message=${encodeURIComponent(
+            "Giao dịch VNPay thất bại"
+          )}`
+        );
+      }
+    }
+  }, [searchParams, navigate]);
 
   const calculateTotal = (items) =>
     items.reduce(
@@ -30,11 +69,24 @@ const Cart = () => {
       setTotalAmount(calculateTotal(items));
     } catch (err) {
       console.error("Lỗi khi lấy giỏ hàng:", err);
+      toast.error("Không thể tải giỏ hàng");
+    }
+  };
+
+  const loadLoyaltyPoints = async () => {
+    if (!token) return;
+    try {
+      const res = await getLoyaltyPointsAPI(token);
+      setTotalPoints(res.data.totalPoints || 0);
+    } catch (err) {
+      console.error("Lỗi khi lấy điểm tích lũy:", err);
+      toast.error("Không thể tải điểm tích lũy");
     }
   };
 
   useEffect(() => {
     loadCart();
+    loadLoyaltyPoints();
   }, []);
 
   const handleQuantityChange = async (cartId, quantity, maxStock) => {
@@ -66,17 +118,104 @@ const Cart = () => {
     }
   };
 
-  const applyVoucher = () => {
-    if (voucher.trim().toUpperCase() === "GIAM10") {
-      setDiscount(10);
-      setVoucherStatus({ success: true, message: "Áp dụng mã giảm giá thành công!" });
-    } else {
-      setDiscount(0);
-      setVoucherStatus({ success: false, message: "Mã giảm giá không hợp lệ hoặc đã hết hạn." });
+  const handlePointsChange = (e) => {
+    const points = parseInt(e.target.value) || 0;
+    if (points <= totalPoints && points >= 0) {
+      setPointsUsed(points);
     }
   };
 
-  const discountedTotal = totalAmount * (1 - discount / 100);
+  const calculateFinalAmount = () => {
+    const discountFromPoints = pointsUsed * 1000;
+    const finalAmount = Math.max(0, totalAmount - discountFromPoints);
+    return {
+      finalAmount,
+      discountFromPoints,
+    };
+  };
+
+  const handleCheckout = () => {
+    if (!shippingAddress.trim()) {
+      toast.error("Vui lòng nhập địa chỉ giao hàng");
+      return;
+    }
+
+    // Không tạo đơn hàng ở đây, chỉ hiển thị modal để xác nhận
+    const tempOrderDetails = {
+      items: cartItems.map((item) => ({
+        ProductID: item.ProductID,
+        Quantity: item.Quantity,
+      })),
+      cartItemIds: cartItems.map((item) => item.CartID),
+      shippingAddress,
+      priceDetails: {
+        totalAmountBeforeDiscount: totalAmount,
+        discountFromPoints: pointsUsed * 1000,
+        finalAmount: Math.max(0, totalAmount - pointsUsed * 1000),
+      },
+    };
+
+    setOrderDetails(tempOrderDetails);
+    setShowPaymentModal(true);
+  };
+
+  const handlePayment = async () => {
+    try {
+      if (!paymentMethod) {
+        toast.error("Vui lòng chọn phương thức thanh toán");
+        return;
+      }
+
+      // Tạo đơn hàng chỉ khi người dùng xác nhận thanh toán
+      const orderResponse = await createOrderAPI(
+        {
+          items: orderDetails.items,
+          pointsUsed,
+          cartItemIds: orderDetails.cartItemIds,
+          shippingAddress,
+        },
+        token
+      );
+
+      const createdOrder = orderResponse.data;
+
+      if (paymentMethod === "cod") {
+        toast.success("Đặt hàng thành công! Thanh toán khi nhận hàng.");
+        setShowPaymentModal(false);
+        setOrderDetails(null);
+        loadCart();
+      } else {
+        const paymentResponse = await processPaymentAPI(
+          {
+            orderId: createdOrder.order.OrderID,
+            paymentMethod: paymentMethod.toLowerCase(),
+          },
+          token
+        );
+
+        if (paymentResponse.data.payUrl) {
+          window.location.href = paymentResponse.data.payUrl;
+        } else {
+          toast.error("Không thể tạo URL thanh toán");
+        }
+      }
+    } catch (err) {
+      console.error("Lỗi khi xử lý thanh toán:", err);
+      const errorMessage =
+        err.response?.data?.error ||
+        "Đã xảy ra lỗi khi xử lý thanh toán. Vui lòng thử lại.";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleCancelPayment = () => {
+    setShowPaymentModal(false);
+    setOrderDetails(null);
+    // Không làm gì với giỏ hàng, giữ nguyên trạng thái
+    toast.info("Đã hủy thanh toán. Giỏ hàng vẫn được giữ nguyên.");
+  };
+
+  const { finalAmount, discountFromPoints } = calculateFinalAmount();
 
   return (
     <CholimexLayout>
@@ -88,7 +227,6 @@ const Cart = () => {
             <p className="text-center">Giỏ hàng đang trống.</p>
           ) : (
             <>
-              {/* TABLE */}
               <div className="overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 text-gray-700 uppercase text-xs tracking-wide">
@@ -102,7 +240,10 @@ const Cart = () => {
                   </thead>
                   <tbody>
                     {cartItems.map((item) => (
-                      <tr key={item.CartID} className="border-t hover:bg-gray-50">
+                      <tr
+                        key={item.CartID}
+                        className="border-t hover:bg-gray-50"
+                      >
                         <td className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3 min-w-[200px]">
                           <img
                             src={item.Product.ImageURL}
@@ -157,63 +298,153 @@ const Cart = () => {
                 </table>
               </div>
 
-              {/* Voucher + Tổng tiền */}
               <div className="mt-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                
-                {/* Voucher */}
                 <div className="w-full md:w-1/2">
-                  {voucherStatus && (
-                    <div
-                      className={`mb-2 text-sm font-semibold ${
-                        voucherStatus.success ? "text-green-600" : "text-red-500"
-                      }`}
-                    >
-                      {voucherStatus.message}
-                    </div>
-                  )}
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 mb-4">
+                    <label className="text-sm font-semibold">
+                      Sử dụng điểm tích lũy (có sẵn: {totalPoints} điểm)
+                    </label>
+                    <input
+                      type="number"
+                      value={pointsUsed}
+                      onChange={handlePointsChange}
+                      className="border border-gray-300 px-3 py-2 rounded text-sm w-full"
+                      min={0}
+                      max={totalPoints}
+                      placeholder="Nhập số điểm muốn dùng"
+                    />
+                    <p className="text-xs text-gray-500">1 điểm = 1,000 VND</p>
+                  </div>
+                  <div className="mt-4">
+                    <label className="text-sm font-semibold">
+                      Địa chỉ giao hàng
+                    </label>
                     <input
                       type="text"
-                      placeholder="Mã giảm giá"
-                      value={voucher}
-                      onChange={(e) => setVoucher(e.target.value)}
+                      value={shippingAddress}
+                      onChange={(e) => setShippingAddress(e.target.value)}
                       className="border border-gray-300 px-3 py-2 rounded text-sm w-full"
+                      placeholder="Nhập địa chỉ giao hàng"
                     />
-                    <button
-                      onClick={applyVoucher}
-                      className="bg-[#dd3333] text-white text-sm px-4 py-2 rounded hover:bg-red-600"
-                    >
-                      Áp dụng
-                    </button>
                   </div>
                 </div>
 
-                {/* Tổng tiền */}
                 <div className="flex flex-col items-end w-full md:w-1/2">
-                  <p className="text-lg font-semibold text-black">
-                    Tổng tiền:&nbsp;
-                    <span className="font-bold text-[#dd3333]">
-                      ₫{discountedTotal.toLocaleString()}
-                    </span>
+                  <p className="text-base text-gray-700">
+                    Tổng tiền gốc: ₫{totalAmount.toLocaleString()}
                   </p>
-                  {discount > 0 && (
-                    <p className="text-sm text-green-600 mt-1">
-                      Đã giảm {discount}% cho đơn hàng!
+                  {discountFromPoints > 0 && (
+                    <p className="text-sm text-green-600">
+                      Giảm giá từ điểm: ₫{discountFromPoints.toLocaleString()}
                     </p>
                   )}
+                  <p className="text-lg font-semibold text-black">
+                    Tổng tiền thanh toán:₫
+                    <span className="font-bold text-[#dd3333]">
+                      ₫{finalAmount.toLocaleString()}
+                    </span>
+                  </p>
                   <button
+                    onClick={handleCheckout}
                     disabled={cartItems.length === 0}
                     className="mt-4 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Thanh toán
                   </button>
                 </div>
-
               </div>
             </>
           )}
         </div>
       </div>
+
+      {showPaymentModal && orderDetails && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl max-w-lg w-full">
+            <h3 className="text-xl font-bold mb-4">Xác nhận đơn hàng</h3>
+
+            <div className="mb-6">
+              <h4 className="text-lg font-semibold">Thông tin đơn hàng</h4>
+              <p className="text-sm text-gray-600">
+                Địa chỉ giao hàng: {orderDetails.shippingAddress}
+              </p>
+
+              <div className="mt-4">
+                <h5 className="text-sm font-semibold">Sản phẩm:</h5>
+                <ul className="list-disc pl-5 text-sm">
+                  {orderDetails.items.map((item, index) => (
+                    <li key={index}>
+                      {cartItems.find(
+                        (cartItem) => cartItem.ProductID === item.ProductID
+                      )?.Product.ProductName || "Sản phẩm"}{" "}
+                      (x{item.Quantity})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="mt-4">
+                <p className="text-sm">
+                  Tổng tiền gốc: ₫
+                  {orderDetails.priceDetails.totalAmountBeforeDiscount.toLocaleString()}
+                </p>
+                {orderDetails.priceDetails.discountFromPoints > 0 && (
+                  <p className="text-sm text-green-600">
+                    Giảm từ điểm tích lũy: ₫
+                    {orderDetails.priceDetails.discountFromPoints.toLocaleString()}
+                  </p>
+                )}
+                <p className="text-sm font-semibold">
+                  Tổng tiền thanh toán: ₫
+                  {orderDetails.priceDetails.finalAmount.toLocaleString()}
+                </p>
+              </div>
+            </div>
+
+            <h4 className="text-lg font-semibold mb-2">
+              Chọn phương thức thanh toán
+            </h4>
+            <div className="flex flex-col gap-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="vnpay"
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="form-radio"
+                />
+                <span>VNPay</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="cod"
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="form-radio"
+                />
+                <span>Thanh toán khi nhận hàng</span>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={handleCancelPayment}
+                className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handlePayment}
+                disabled={!paymentMethod}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+              >
+                Xác nhận thanh toán
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </CholimexLayout>
   );
 };
