@@ -1,5 +1,9 @@
 import "./App.css";
+<<<<<<< HEAD
 import { BrowserRouter as  Router ,Routes, Route } from "react-router-dom";
+=======
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+>>>>>>> 1236eda37d74bcb4950b963a3251ec7135a58619
 
 import Home from "./components/Content/Home";
 import About from "./components/Content/About";
