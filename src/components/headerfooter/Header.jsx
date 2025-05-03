@@ -1,7 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/image/logo-english.jpg";
-import { login, register, getCartAPI } from "../../api/api.js";
+import {
+  login,
+  register,
+  getCartAPI,
+  getNotifications,
+} from "../../api/api.js";
 import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { jwtDecode } from "jwt-decode";
@@ -24,25 +29,36 @@ function Header() {
     address: "",
   });
   const [cartItems, setCartItems] = useState([]);
-  // Đếm số sản phẩm khác nhau (không tính tổng quantity)
+  const [unreadCount, setUnreadCount] = useState(0);
   const totalQty = cartItems.length;
 
   const modalRef = useRef();
   const dropdownRef = useRef();
   const mobileMenuRef = useRef();
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
-  // Thêm reloadCart để load lại giỏ
   const reloadCart = () => {
-    const token = localStorage.getItem("token");
     if (user && token) {
-      getCartAPI(user.UserID, token)
+      getCartAPI(token)
         .then((res) => {
           setCartItems(res.data.cartItems || []);
         })
         .catch((err) => {
           console.error("Lỗi khi lấy giỏ hàng:", err);
         });
+    }
+  };
+
+  const fetchNotificationsCount = async () => {
+    if (user && token) {
+      try {
+        const response = await getNotifications(token);
+        const unread = response.data.filter((noti) => !noti.IsRead).length;
+        setUnreadCount(unread);
+      } catch (error) {
+        console.error("Lỗi khi lấy thông báo:", error);
+      }
     }
   };
 
@@ -59,9 +75,9 @@ function Header() {
 
   useEffect(() => {
     reloadCart();
-  }, [user]);
+    fetchNotificationsCount();
+  }, [user, token]);
 
-  // Thêm useEffect nghe event "cartUpdated" để reload cart
   useEffect(() => {
     const handleCartUpdate = () => {
       reloadCart();
@@ -78,6 +94,7 @@ function Header() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       setUser(null);
+      setUnreadCount(0);
       setDropdownOpen(false);
       toast.update(id, {
         render: "Đã đăng xuất thành công.",
@@ -190,7 +207,6 @@ function Header() {
             />
           </Link>
 
-          {/* Mobile Login + Menu */}
           <div className="md:hidden flex gap-2 items-center pr-4">
             {!user && (
               <button
@@ -205,7 +221,6 @@ function Header() {
             </button>
           </div>
 
-          {/* Mobile Menu */}
           <nav
             ref={mobileMenuRef}
             className={`fixed top-0 left-0 w-3/4 sm:w-2/5 h-full bg-white z-50 transform transition-transform duration-300 p-6 flex flex-col items-center gap-4 md:static md:w-auto md:h-auto md:flex-row md:bg-transparent md:p-0 md:gap-4 md:translate-x-0 ${
@@ -259,7 +274,6 @@ function Header() {
             )}
           </nav>
 
-          {/* Desktop: Cart + Dropdown */}
           <div
             className="hidden md:flex items-center gap-4 pr-4"
             ref={dropdownRef}
@@ -289,15 +303,15 @@ function Header() {
               </button>
             ) : (
               <div className="flex items-center gap-4">
-                {/* 🔔 Notification icon */}
-                <div className="relative cursor-pointer -translate-x-2 ">
+                <div className="relative cursor-pointer -translate-x-2">
                   <Notification />
-                  <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    2
-                  </span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
                 </div>
 
-                {/* 🛒 Cart icon */}
                 <Link
                   to="#"
                   onClick={(e) => {
@@ -315,7 +329,6 @@ function Header() {
                   )}
                 </Link>
 
-               
                 <div
                   className="cursor-pointer select-none"
                   onClick={() => setDropdownOpen(!isDropdownOpen)}
@@ -343,7 +356,7 @@ function Header() {
                         onClick={() => navigate("/order")}
                         className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                       >
-                        Lịch sử mua hàng 
+                        Lịch sử mua hàng
                       </button>
                       <button
                         onClick={handleLogout}
@@ -360,7 +373,6 @@ function Header() {
         </div>
       </header>
 
-      {/* Modal đăng nhập/đăng ký */}
       {showLogin && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
           <div
@@ -371,7 +383,7 @@ function Header() {
               onClick={() => setShowLogin(false)}
               className="absolute top-2 right-2 text-gray-500 hover:text-red-600 text-xl"
             >
-              &times;
+              ×
             </button>
             <h2 className="text-xl font-bold mb-4 text-center">
               {mode === "login" ? "Đăng nhập" : "Đăng ký tài khoản"}

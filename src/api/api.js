@@ -114,3 +114,28 @@ export const removeFromWishlistAPI = (productId, token) =>
   API.delete(`/wishlist-del/${productId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+// === NOTIFICATION ===
+export const getNotifications = (token) =>
+  API.get("/noti", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const markNotificationAsRead = (id, token) =>
+  API.post(`/noti/read/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const createNotification = (data, token) =>
+  API.post("/noti-add", data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const deleteNotification = (id, token) =>
+  API.delete(`/noti-del/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const getAllNotifications = (token) =>
+  API.get("/noti-all", {
+    headers: { Authorization: `Bearer ${token}` },
+  });

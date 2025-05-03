@@ -1,22 +1,69 @@
 import { useState, useEffect, useRef } from "react";
 import { Bell } from "lucide-react";
-import { Link } from "react-router-dom";
+import { getNotifications, markNotificationAsRead } from "../../api/api";
+import { jwtDecode } from "jwt-decode";
+import { toast } from "react-toastify";
 
 function Notification() {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const notificationRef = useRef(null);
+  const token = localStorage.getItem("token");
+  let userId = null;
 
-  const notifications = [
-    { id: 1, message: "Có đơn hàng mới", time: "2 phút trước", read: false },
-    { id: 2, message: "Người dùng mới đăng ký", time: "5 phút trước", read: true },
-    { id: 3, message: "Sản phẩm hết hàng", time: "1 giờ trước", read: false },
-  ];
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      userId = decoded.UserID;
+    } catch (err) {
+      console.error("Lỗi giải mã token:", err);
+      toast.error("Token không hợp lệ. Vui lòng đăng nhập lại.");
+    }
+  }
 
-  const unreadCount = notifications.filter(noti => !noti.read).length;
+  const fetchNotifications = async () => {
+    if (token && userId) {
+      try {
+        const response = await getNotifications(token);
+        setNotifications(response.data || []);
+      } catch (error) {
+        console.error("Lỗi khi lấy thông báo:", error);
+        toast.error("Không thể tải thông báo.");
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [token, userId]);
+
+  const handleMarkAsRead = async (notificationId) => {
+    if (token) {
+      try {
+        await markNotificationAsRead(notificationId, token);
+        setNotifications((prev) =>
+          prev.map((noti) =>
+            noti.NotificationID === notificationId
+              ? { ...noti, IsRead: true }
+              : noti
+          )
+        );
+        toast.success("Đã đánh dấu thông báo là đã đọc.");
+      } catch (error) {
+        console.error("Lỗi khi đánh dấu thông báo:", error);
+        toast.error("Không thể đánh dấu thông báo là đã đọc.");
+      }
+    }
+  };
+
+  const unreadCount = notifications.filter((noti) => !noti.IsRead).length;
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
         setShowNotifications(false);
       }
     }
@@ -25,7 +72,10 @@ function Notification() {
   }, []);
 
   return (
-    <div className="relative w-8 h-8 flex items-center justify-center" ref={notificationRef}>
+    <div
+      className="relative w-8 h-8 flex items-center justify-center"
+      ref={notificationRef}
+    >
       <button
         onClick={() => setShowNotifications(!showNotifications)}
         className="relative text-black hover:text-[#dd3333] w-full h-full flex items-center justify-center"
@@ -40,18 +90,35 @@ function Notification() {
 
       {showNotifications && (
         <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-50">
-          <div className="p-4 font-bold text-gray-800 border-b text-lg">Thông báo</div>
+          <div className="p-4 font-bold text-gray-800 border-b text-lg text-center">
+            Thông báo
+          </div>
           <div className="max-h-80 overflow-y-auto">
             {notifications.length > 0 ? (
               notifications.map((noti) => (
                 <div
-                  key={noti.id}
-                  className="flex items-start gap-2 px-4 py-3 hover:bg-gray-100 transition text-sm"
+                  key={noti.NotificationID}
+                  className="flex items-start gap-2 px-4 py-3 hover:bg-gray-100 transition text-sm cursor-pointer text-left"
+                  onClick={() =>
+                    !noti.IsRead && handleMarkAsRead(noti.NotificationID)
+                  }
                 >
-                  {!noti.read && <span className="w-2 h-2 bg-red-500 rounded-full mt-2"></span>}
+                  {!noti.IsRead && (
+                    <span className="w-2 h-2 bg-red-500 rounded-full mt-2"></span>
+                  )}
                   <div>
-                    <div className="text-gray-700">{noti.message}</div>
-                    <div className="text-xs text-gray-400">{noti.time}</div>
+                    <div className="text-gray-700">
+                      {noti.Message || noti.Title}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {new Date(noti.CreatedAt).toLocaleString("vi-VN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
+                    </div>
                   </div>
                 </div>
               ))
@@ -61,12 +128,6 @@ function Notification() {
               </div>
             )}
           </div>
-          <Link
-            to="/admin/notifications"
-            className="block text-center text-[#dd3333] font-semibold text-sm py-3 hover:bg-gray-100"
-          >
-            Xem tất cả
-          </Link>
         </div>
       )}
     </div>

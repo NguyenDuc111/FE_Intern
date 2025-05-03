@@ -69,10 +69,10 @@ function Profile() {
         <div className="w-full max-w-3xl rounded-2xl bg-white p-10 text-gray-900 shadow-xl">
           <h2 className="text-3xl font-bold mb-8 text-black-800 text-center">Cập nhật thông tin</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <input name="FullName" value={profile.FullName} onChange={handleChange} placeholder="Họ tên" className="w-full px-4 py-2 border rounded" />
-            <input name="Email" value={profile.Email} onChange={handleChange} placeholder="Email" className="w-full px-4 py-2 border rounded" />
-            <input name="Phone" value={profile.Phone} onChange={handleChange} placeholder="Số điện thoại" className="w-full px-4 py-2 border rounded" />
-            <input name="Address" value={profile.Address} onChange={handleChange} placeholder="Địa chỉ" className="w-full px-4 py-2 border rounded" />
+            <input name="FullName" value={profile.fullName} onChange={handleChange} placeholder="Họ tên" className="w-full px-4 py-2 border rounded" />
+            <input name="Email" value={profile.email} onChange={handleChange} placeholder="Email" className="w-full px-4 py-2 border rounded" />
+            <input name="Phone" value={profile.phone} onChange={handleChange} placeholder="Số điện thoại" className="w-full px-4 py-2 border rounded" />
+            <input name="Address" value={profile.address} onChange={handleChange} placeholder="Địa chỉ" className="w-full px-4 py-2 border rounded" />
             <div className="flex justify-end gap-4">
               <button type="button" onClick={handleCancel} className="px-4 py-2 bg-gray-300 text-gray-700 rounded">Huỷ</button>
               <button
