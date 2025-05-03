@@ -74,6 +74,16 @@ export const processPaymentAPI = (data, token) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
+export const getAllOrders = (token) =>
+  API.get("/order", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const getOrderById = (token, Id) =>
+  API.get(`/order/${Id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
 // === LOYALTY POINTS ===
 export const getLoyaltyPointsAPI = (token) =>
   API.get("/point", {
@@ -81,7 +91,11 @@ export const getLoyaltyPointsAPI = (token) =>
   });
 
 // === USER PROFILE ===
-export const getUserProfile = (userId) => API.get(`/user-profile/${userId}`);
+export const getUserProfile = (userId, token) =>
+  API.get(`/user-profile/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
 export const updateUserProfile = (userId, data) =>
   API.put(`/update-profile/${userId}`, data);
 

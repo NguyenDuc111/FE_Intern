@@ -29,10 +29,10 @@ function Profile() {
   }, []);
 
   const handleChange = (e) => {
-    const updatedProfile = { ...profile, [e.target.name]: e.target.value };
+    const updatedProfile = { ...profile, [e.target.FullName]: e.target.value };
     setProfile(updatedProfile);
     setIsChanged(JSON.stringify(updatedProfile) !== JSON.stringify(originalProfile));
-  };
+  };  
 
   const handleSubmit = async (e) => {
     e.preventDefault();

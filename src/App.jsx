@@ -1,9 +1,5 @@
 import "./App.css";
-<<<<<<< HEAD
-import { BrowserRouter as  Router ,Routes, Route } from "react-router-dom";
-=======
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
->>>>>>> 1236eda37d74bcb4950b963a3251ec7135a58619
 
 import Home from "./components/Content/Home";
 import About from "./components/Content/About";
@@ -16,6 +12,7 @@ import Cart from "./components/Content/Cart";
 import ProductDetail from "./components/Content/ProductDetail";
 import PaymentSuccess from "./components/Content/PaymentSuccess";
 import PaymentFailed from "./components/Content/PaymentFailed";
+import PaymentHistory from "./components/Content/PaymentHistory";
 
 function App() {
   return (
@@ -36,6 +33,7 @@ function App() {
           <Route path="/Product-detail" element={<ProductDetail />} />
           <Route path="/payment/success" element={<PaymentSuccess />} />
           <Route path="/payment/failed" element={<PaymentFailed />} />
+          <Route path="/order" element={<PaymentHistory />} />
         </Routes>
       </div>
     </>

@@ -8,7 +8,9 @@ import {
   createOrderAPI,
   processPaymentAPI,
   getLoyaltyPointsAPI,
+  getUserProfile,
 } from "../../api/api";
+import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 
 const Cart = () => {
@@ -20,9 +22,21 @@ const Cart = () => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [shippingAddress, setShippingAddress] = useState("");
   const [orderDetails, setOrderDetails] = useState(null);
+  const [userInfo, setUserInfo] = useState({ FullName: "", Phone: "" });
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+
+  let userId = null;
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      userId = decoded.UserID;
+    } catch (err) {
+      console.error("Lỗi giải mã token:", err);
+      toast.error("Token không hợp lệ. Vui lòng đăng nhập lại.");
+    }
+  }
 
   useEffect(() => {
     const status = searchParams.get("status");
@@ -61,7 +75,10 @@ const Cart = () => {
     );
 
   const loadCart = async () => {
-    if (!token) return;
+    if (!token) {
+      toast.error("Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
     try {
       const res = await getCartAPI(token);
       const items = res.data.cartItems || [];
@@ -84,9 +101,27 @@ const Cart = () => {
     }
   };
 
+  const loadUserInfo = async () => {
+    if (!token || !userId) {
+      toast.error("Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
+    try {
+      const res = await getUserProfile(userId, token); // Gọi API /user-profile/:id với userId
+      setUserInfo({
+        FullName: res.data.FullName || "Không có thông tin",
+        Phone: res.data.Phone || "Không có thông tin",
+      });
+    } catch (err) {
+      console.error("Lỗi khi lấy thông tin người dùng:", err);
+      toast.error("Không thể tải thông tin người dùng");
+    }
+  };
+
   useEffect(() => {
     loadCart();
     loadLoyaltyPoints();
+    loadUserInfo();
   }, []);
 
   const handleQuantityChange = async (cartId, quantity, maxStock) => {
@@ -140,7 +175,6 @@ const Cart = () => {
       return;
     }
 
-    // Không tạo đơn hàng ở đây, chỉ hiển thị modal để xác nhận
     const tempOrderDetails = {
       items: cartItems.map((item) => ({
         ProductID: item.ProductID,
@@ -166,7 +200,6 @@ const Cart = () => {
         return;
       }
 
-      // Tạo đơn hàng chỉ khi người dùng xác nhận thanh toán
       const orderResponse = await createOrderAPI(
         {
           items: orderDetails.items,
@@ -211,7 +244,6 @@ const Cart = () => {
   const handleCancelPayment = () => {
     setShowPaymentModal(false);
     setOrderDetails(null);
-    // Không làm gì với giỏ hàng, giữ nguyên trạng thái
     toast.info("Đã hủy thanh toán. Giỏ hàng vẫn được giữ nguyên.");
   };
 
@@ -260,7 +292,7 @@ const Cart = () => {
                           </div>
                         </td>
                         <td className="text-center text-gray-700 px-4 py-3">
-                          ₫{parseInt(item.Product.Price).toLocaleString()}
+                          {parseInt(item.Product.Price).toLocaleString()}₫
                         </td>
                         <td className="text-center px-4 py-3">
                           <input
@@ -279,10 +311,10 @@ const Cart = () => {
                           />
                         </td>
                         <td className="text-center font-semibold px-4 py-3 text-gray-800">
-                          ₫
                           {(
                             parseInt(item.Product.Price) * item.Quantity
                           ).toLocaleString()}
+                          ₫
                         </td>
                         <td className="text-center px-4 py-3">
                           <button
@@ -313,7 +345,7 @@ const Cart = () => {
                       max={totalPoints}
                       placeholder="Nhập số điểm muốn dùng"
                     />
-                    <p className="text-xs text-gray-500">1 điểm = 1,000 VND</p>
+                    <p className="text-xs text-gray-500">1 điểm = 1,000₫</p>
                   </div>
                   <div className="mt-4">
                     <label className="text-sm font-semibold">
@@ -331,17 +363,17 @@ const Cart = () => {
 
                 <div className="flex flex-col items-end w-full md:w-1/2">
                   <p className="text-base text-gray-700">
-                    Tổng tiền gốc: ₫{totalAmount.toLocaleString()}
+                    Tổng tiền gốc: {totalAmount.toLocaleString()}₫
                   </p>
                   {discountFromPoints > 0 && (
                     <p className="text-sm text-green-600">
-                      Giảm giá từ điểm: ₫{discountFromPoints.toLocaleString()}
+                      Giảm giá từ điểm: {discountFromPoints.toLocaleString()}₫
                     </p>
                   )}
                   <p className="text-lg font-semibold text-black">
-                    Tổng tiền thanh toán:₫
+                    Tổng tiền thanh toán:
                     <span className="font-bold text-[#dd3333]">
-                      ₫{finalAmount.toLocaleString()}
+                      {finalAmount.toLocaleString()}₫
                     </span>
                   </p>
                   <button
@@ -361,10 +393,16 @@ const Cart = () => {
       {showPaymentModal && orderDetails && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl max-w-lg w-full">
-            <h3 className="text-xl font-bold mb-4">Xác nhận đơn hàng</h3>
+            <h3 className="text-xl font-bold mb-4 ">Xác nhận đơn hàng</h3>
 
             <div className="mb-6">
               <h4 className="text-lg font-semibold">Thông tin đơn hàng</h4>
+              <p className="text-sm text-gray-600">
+                Tên khách hàng: {userInfo.FullName}
+              </p>
+              <p className="text-sm text-gray-600">
+                Số điện thoại: {userInfo.Phone}
+              </p>
               <p className="text-sm text-gray-600">
                 Địa chỉ giao hàng: {orderDetails.shippingAddress}
               </p>
@@ -385,18 +423,20 @@ const Cart = () => {
 
               <div className="mt-4">
                 <p className="text-sm">
-                  Tổng tiền gốc: ₫
+                  Tổng tiền gốc:
                   {orderDetails.priceDetails.totalAmountBeforeDiscount.toLocaleString()}
+                  ₫
                 </p>
                 {orderDetails.priceDetails.discountFromPoints > 0 && (
                   <p className="text-sm text-green-600">
-                    Giảm từ điểm tích lũy: ₫
+                    Giảm từ điểm tích lũy:
                     {orderDetails.priceDetails.discountFromPoints.toLocaleString()}
+                    ₫
                   </p>
                 )}
                 <p className="text-sm font-semibold">
-                  Tổng tiền thanh toán: ₫
-                  {orderDetails.priceDetails.finalAmount.toLocaleString()}
+                  Tổng tiền thanh toán:
+                  {orderDetails.priceDetails.finalAmount.toLocaleString()}₫
                 </p>
               </div>
             </div>

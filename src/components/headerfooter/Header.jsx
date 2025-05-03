@@ -315,7 +315,7 @@ function Header() {
                   )}
                 </Link>
 
-                {/* 👤 Xin chào, User */}
+               
                 <div
                   className="cursor-pointer select-none"
                   onClick={() => setDropdownOpen(!isDropdownOpen)}
@@ -326,7 +326,7 @@ function Header() {
                     </span>
                     <span>
                       Xin chào,{" "}
-                      {user?.name?.split(" ").slice(-1)[0] ||
+                      {user?.FullName?.split(" ").slice(-1)[0] ||
                         user?.email?.split("@")[0] ||
                         "User"}
                     </span>
@@ -338,6 +338,12 @@ function Header() {
                         className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                       >
                         Thông tin tài khoản
+                      </button>
+                      <button
+                        onClick={() => navigate("/order")}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
+                        Lịch sử mua hàng 
                       </button>
                       <button
                         onClick={handleLogout}
