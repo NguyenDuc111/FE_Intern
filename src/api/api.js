@@ -99,7 +99,7 @@ export const getOrderById = (token, Id) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  // === ORDER ADMIN ===
+// === ORDER ADMIN ===
 export const deleteOrder = (id) =>
   API.delete(`/order-del/${id}`, {
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -166,20 +166,41 @@ export const getAllNotifications = (token) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
+// === PRODUCT ADMIN ===
+export const addProduct = (data) =>
+  API.post("/product-add", data, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  }).catch((error) => {
+    console.error("Error details:", error.response?.data); // Log chi tiết lỗi từ server
+    throw error;
+  });
 
-
-
-  // === PRODUCT ADMIN ===
-  export const addProduct = (data) => 
-    API.post('/product-add', data, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    }).catch((error) => {
-      console.error("Error details:", error.response?.data); // Log chi tiết lỗi từ server
-      throw error;
-    });
-
-export const updateProduct = (id, data) => API.put(`/product-update/${id}`, data);
+export const updateProduct = (id, data) =>
+  API.put(`/product-update/${id}`, data);
 
 export const deleteProduct = (id) => API.delete(`/product-del/${id}`);
+// === REVIEW ===
+export const getReviewsByProduct = (id) => API.get(`/review/product/${id}`);
+
+export const createReview = (data, token) =>
+  API.post("/review-add", data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+// === VOUCHERS ===
+export const getAvailableVouchersAPI = (token) =>
+  API.get("/vouchers", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const redeemVoucherAPI = (voucherId, userID, token) =>
+  API.post("/redeem-voucher", voucherId, userID, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const applyVoucherAPI = (data, token) =>
+  API.post("/apply-voucher", data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
