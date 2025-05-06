@@ -13,6 +13,13 @@ import ProductDetail from "./components/Content/ProductDetail";
 import PaymentSuccess from "./components/Content/PaymentSuccess";
 import PaymentFailed from "./components/Content/PaymentFailed";
 import PaymentHistory from "./components/Content/PaymentHistory";
+import Dashboard from "./components/Admin/Dashboard";
+import AdminLayout from "./components/Admin/AdminLayout";
+import ProductManager from "./components/Admin/ProductManager";
+import CategoryManager from "./components/Admin/CategoryManager";
+import OrderManager from "./components/Admin/OrderManager";
+import LoyaltyManager from "./components/Admin/LoyaltyManager";
+import UserManager from "./components/Admin/UserManager";
 
 function App() {
   return (
@@ -36,7 +43,6 @@ function App() {
           {/* Tự động chuyển về /login khi vào / */}
           <Route path="/" element={<Home />} />
 
-
           <Route path="/home" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
@@ -47,6 +53,17 @@ function App() {
           <Route path="/payment/success" element={<PaymentSuccess />} />
           <Route path="/payment/failed" element={<PaymentFailed />} />
           <Route path="/order" element={<PaymentHistory />} />
+
+          {/* ✅ Route admin đúng cách */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="products" element={<ProductManager />} />
+            <Route path="categories" element={<CategoryManager />} />
+            <Route path="orders" element={<OrderManager/>}/>
+            <Route path="loyalty" element={<LoyaltyManager />} />
+            <Route path="users" element={<UserManager />} />
+          </Route>
         </Routes>
       </div>
     </>

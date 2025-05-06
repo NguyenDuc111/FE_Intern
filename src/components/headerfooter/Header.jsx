@@ -162,16 +162,17 @@ function Header() {
       setForm({ name: "", email: "", password: "", phone: "", address: "" });
     } catch (err) {
       toast.dismiss();
-    
+
       // Kiểm tra lỗi email đã tồn tại từ phản hồi API
       const message = err.response?.data?.message || "";
-    
+
       if (message.includes("email") && message.includes("tồn tại")) {
         toast.error("Email này đã có người sử dụng rồi.");
       } else {
-        toast.error("Lỗi: " + (message || "Đăng ký không thành công."));
+        toast.error("Lỗi: " + (message || "Đăng nhập không thành công."));
       }
-    }}
+    }
+  };
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -267,6 +268,13 @@ function Header() {
                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
                   Giỏ hàng
+                </Link>
+                <Link
+                  to="/order"
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                Lịch sử mua hàng
                 </Link>
                 <button
                   onClick={handleLogout}

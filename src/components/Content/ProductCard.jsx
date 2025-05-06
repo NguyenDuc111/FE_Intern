@@ -162,7 +162,7 @@ function ProductCard({ selectedCategory, sortType }) {
             >
               <div className="relative">
                 <img
-                  src={p.ImageURL}
+                  src={p.ImageURL || "/default.jpg"}
                   alt={p.ProductName}
                   className="w-full h-[180px] object-cover rounded mb-2"
                 />
