@@ -107,7 +107,7 @@ const Cart = () => {
       return;
     }
     try {
-      const res = await getUserProfile(userId, token); // Gọi API /user-profile/:id với userId
+      const res = await getUserProfile(userId, token); 
       setUserInfo({
         FullName: res.data.FullName || "Không có thông tin",
         Phone: res.data.Phone || "Không có thông tin",

@@ -4,6 +4,7 @@ import logo from "../../assets/image/logo-english.jpg";
 import {
   login,
   register,
+  forgotPassword,
   getCartAPI,
   getNotifications,
 } from "../../api/api.js";
@@ -111,13 +112,28 @@ function Header() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (form.password.length < 6) {
-      toast.error("Mật khẩu phải có ít nhất 6 ký tự");
-      return;
-    }
 
     try {
+      if (mode === "forgotPassword") {
+        const id = toast.loading("Đang gửi yêu cầu đặt lại mật khẩu...");
+        await forgotPassword({ email: form.email });
+        toast.update(id, {
+          render: "Link đặt lại mật khẩu đã được gửi qua email.",
+          type: "success",
+          isLoading: false,
+          autoClose: 2000,
+        });
+        setShowLogin(false);
+        setForm({ name: "", email: "", password: "", phone: "", address: "" });
+        setMode("login");
+        return;
+      }
+
       if (mode === "register") {
+        if (form.password.length < 6) {
+          toast.error("Mật khẩu phải có ít nhất 6 ký tự");
+          return;
+        }
         const id = toast.loading("Đang đăng ký...");
         await register(form);
         toast.update(id, {
@@ -131,6 +147,10 @@ function Header() {
       }
 
       if (mode === "login") {
+        if (form.password.length < 6) {
+          toast.error("Mật khẩu phải có ít nhất 6 ký tự");
+          return;
+        }
         const id = toast.loading("Đang đăng nhập...");
         const res = await login(form);
         const token = res.data.token;
@@ -162,16 +182,14 @@ function Header() {
       setForm({ name: "", email: "", password: "", phone: "", address: "" });
     } catch (err) {
       toast.dismiss();
-    
-      // Kiểm tra lỗi email đã tồn tại từ phản hồi API
-      const message = err.response?.data?.message || "";
-    
+      const message = err.response?.data?.error || "Có lỗi xảy ra.";
       if (message.includes("email") && message.includes("tồn tại")) {
         toast.error("Email này đã có người sử dụng rồi.");
       } else {
-        toast.error("Lỗi: " + (message || "Đăng ký không thành công."));
+        toast.error(message);
       }
-    }}
+    }
+  };
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -363,6 +381,12 @@ function Header() {
                         Lịch sử mua hàng
                       </button>
                       <button
+                        onClick={() => navigate("/voucher")}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
+                        Voucher
+                      </button>
+                      <button
                         onClick={handleLogout}
                         className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                       >
@@ -390,7 +414,11 @@ function Header() {
               ×
             </button>
             <h2 className="text-xl font-bold mb-4 text-center">
-              {mode === "login" ? "Đăng nhập" : "Đăng ký tài khoản"}
+              {mode === "login"
+                ? "Đăng nhập"
+                : mode === "register"
+                ? "Đăng ký tài khoản"
+                : "Quên mật khẩu"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === "register" && (
@@ -421,45 +449,85 @@ function Header() {
                   />
                 </>
               )}
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={form.email}
-                onChange={handleChange}
-                required
-                className="w-full border rounded px-3 py-2"
-              />
-              <input
-                type="password"
-                name="password"
-                placeholder="Mật khẩu"
-                value={form.password}
-                onChange={handleChange}
-                required
-                className="w-full border rounded px-3 py-2"
-              />
+              {mode !== "forgotPassword" && (
+                <>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                    className="w-full border rounded px-3 py-2"
+                  />
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Mật khẩu"
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                    className="w-full border rounded px-3 py-2"
+                  />
+                </>
+              )}
+              {mode === "forgotPassword" && (
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Nhập email của bạn"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                  className="w-full border rounded px-3 py-2"
+                />
+              )}
               <button
                 type="submit"
                 className="w-full bg-[#dd3333] text-white font-bold py-2 rounded hover:bg-red-600 transition"
               >
-                {mode === "login" ? "Đăng nhập" : "Đăng ký"}
+                {mode === "login"
+                  ? "Đăng nhập"
+                  : mode === "register"
+                  ? "Đăng ký"
+                  : "Gửi link đặt lại"}
               </button>
             </form>
             <div className="text-center mt-4 text-sm">
               {mode === "login" ? (
+                <>
+                  <p>
+                    Chưa có tài khoản?{" "}
+                    <button
+                      onClick={() => setMode("register")}
+                      className="text-[#dd3333] font-semibold hover:underline"
+                    >
+                      Đăng ký
+                    </button>
+                  </p>
+                  <p className="mt-2">
+                    Quên mật khẩu?{" "}
+                    <button
+                      onClick={() => setMode("forgotPassword")}
+                      className="text-[#dd3333] font-semibold hover:underline"
+                    >
+                      Đặt lại mật khẩu
+                    </button>
+                  </p>
+                </>
+              ) : mode === "register" ? (
                 <p>
-                  Chưa có tài khoản?{" "}
+                  Đã có tài khoản?{" "}
                   <button
-                    onClick={() => setMode("register")}
+                    onClick={() => setMode("login")}
                     className="text-[#dd3333] font-semibold hover:underline"
                   >
-                    Đăng ký
+                    Đăng nhập
                   </button>
                 </p>
               ) : (
                 <p>
-                  Đã có tài khoản?{" "}
+                  Quay lại{" "}
                   <button
                     onClick={() => setMode("login")}
                     className="text-[#dd3333] font-semibold hover:underline"

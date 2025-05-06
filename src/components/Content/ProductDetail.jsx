@@ -3,7 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Star } from "lucide-react";
 import CholimexLayout from "../Layout/CholimexLayout";
-import { getProductById, addToCartAPI, getAllProducts } from "../../api/api";
+import {
+  getProductById,
+  addToCartAPI,
+  getAllProducts,
+  getReviewsByProduct,
+  createReview,
+} from "../../api/api";
 
 function ProductDetail() {
   const { id } = useParams();
@@ -12,28 +18,43 @@ function ProductDetail() {
   const [wishlist, setWishlist] = useState([]);
   const [user, setUser] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
-  const [rating] = useState(4.5); // tạm thời cố định
+  const [reviews, setReviews] = useState([]);
+  const [rating, setRating] = useState(0);
+  const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProductAndReviews = async () => {
       try {
         const res = await getProductById(id);
         const productData = res.data;
         setProduct(productData);
 
-        // Lấy sản phẩm tương tự không dựa vào danh mục
+        
+        const reviewRes = await getReviewsByProduct(id);
+        setReviews(reviewRes.data || []);
+        const totalRating = reviewRes.data.reduce(
+          (sum, r) => sum + r.Rating,
+          0
+        );
+        setRating(
+          reviewRes.data.length > 0 ? totalRating / reviewRes.data.length : 0
+        );
+
+        // Fetch related products
         const allProducts = await getAllProducts();
         const filtered = allProducts.data.filter(
           (p) => p.ProductID !== productData.ProductID
         );
         setRelatedProducts(filtered.slice(0, 4));
       } catch (error) {
-        console.error("Lỗi khi lấy sản phẩm:", error);
-        toast.error("Không thể tải sản phẩm", { position: "top-center" });
+        console.error("Lỗi khi lấy sản phẩm hoặc đánh giá:", error);
+        toast.error("Không thể tải sản phẩm hoặc đánh giá", {
+          position: "top-center",
+        });
       }
     };
 
-    fetchProduct();
+    fetchProductAndReviews();
   }, [id]);
 
   useEffect(() => {
@@ -117,6 +138,50 @@ function ProductDetail() {
     }
   };
 
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error("Bạn cần đăng nhập để đánh giá!", { position: "top-center" });
+      return;
+    }
+
+    if (newReview.rating < 1 || newReview.rating > 5) {
+      toast.error("Điểm đánh giá phải từ 1 đến 5!", { position: "top-center" });
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      await createReview(
+        {
+          ProductID: product.ProductID,
+          Rating: newReview.rating,
+          Comment: newReview.comment,
+        },
+        token
+      );
+      toast.success("Đánh giá của bạn đã được gửi!", {
+        position: "top-center",
+      });
+      setNewReview({ rating: 0, comment: "" });
+      const reviewRes = await getReviewsByProduct(id);
+      setReviews(reviewRes.data || []);
+      const totalRating = reviewRes.data.reduce((sum, r) => sum + r.Rating, 0);
+      setRating(
+        reviewRes.data.length > 0 ? totalRating / reviewRes.data.length : 0
+      );
+    } catch (error) {
+      console.error("Lỗi khi gửi đánh giá:", error);
+      toast.error(error.response?.data?.error || "Gửi đánh giá thất bại!", {
+        position: "top-center",
+      });
+    }
+  };
+
+  const handleStarClick = (ratingValue) => {
+    setNewReview({ ...newReview, rating: ratingValue });
+  };
+
   return (
     <CholimexLayout>
       <div className="max-w-screen-xl mx-auto px-4 py-8">
@@ -165,7 +230,9 @@ function ProductDetail() {
                   stroke="#dd3333"
                 />
               ))}
-              <span className="text-sm text-gray-600 ml-2">{rating} / 5</span>
+              <span className="text-sm text-gray-600 ml-2">
+                {rating.toFixed(1)} / 5
+              </span>
             </div>
 
             <div className="text-gray-700 leading-relaxed space-y-2 whitespace-pre-line">
@@ -242,9 +309,100 @@ function ProductDetail() {
 
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6 text-[#dd3333]">Bình luận</h2>
-          <div className="text-gray-600">
-            (Sẽ hiển thị sau khi kết nối API và người dùng đã mua hàng)
-          </div>
+          {reviews.length > 0 ? (
+            <div className="space-y-4">
+              {reviews.map((review) => (
+                <div key={review.ReviewID} className="border-b pb-4">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold">{review.User.FullName}</p>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <Star
+                          key={idx}
+                          size={16}
+                          fill={idx < review.Rating ? "#dd3333" : "#e5e7eb"}
+                          stroke="#dd3333"
+                        />
+                      ))}
+                      <span className="text-sm text-gray-600 ml-2">
+                        {review.Rating} / 5
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 mt-2">{review.Comment}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(review.CreatedAt).toLocaleString("vi-VN", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">Chưa có bình luận nào.</p>
+          )}
+
+          {user && (
+            <div className="mt-6">
+              <h3 className="font-semibold text-gray-700 mb-2">
+                Thêm bình luận của bạn
+              </h3>
+              <form onSubmit={handleReviewSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Đánh giá:
+                  </label>
+                  <div className="flex items-center gap-1 mt-1">
+                    {Array.from({ length: 5 }).map((_, idx) => {
+                      const starValue = idx + 1;
+                      return (
+                        <Star
+                          key={idx}
+                          size={24}
+                          fill={
+                            starValue <= newReview.rating
+                              ? "#dd3333"
+                              : "#e5e7eb"
+                          }
+                          stroke="#dd3333"
+                          className="cursor-pointer transition-all duration-200 hover:scale-110"
+                          onClick={() => handleStarClick(starValue)}
+                        />
+                      );
+                    })}
+                    <span className="text-sm text-gray-600 ml-2">
+                      {newReview.rating > 0
+                        ? `${newReview.rating} / 5`
+                        : "Chọn điểm đánh giá"}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Bình luận:
+                  </label>
+                  <textarea
+                    value={newReview.comment}
+                    onChange={(e) =>
+                      setNewReview({ ...newReview, comment: e.target.value })
+                    }
+                    className="mt-1 block w-full border rounded-md p-2"
+                    rows="4"
+                    placeholder="Viết nhận xét của bạn..."
+                    required
+                  ></textarea>
+                </div>
+                <button
+                  type="submit"
+                  className="bg-[#dd3333] text-white px-4 py-2 rounded hover:bg-red-600 transition"
+                >
+                  Gửi đánh giá
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       </div>
     </CholimexLayout>

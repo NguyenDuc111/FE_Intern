@@ -13,6 +13,9 @@ import ProductDetail from "./components/Content/ProductDetail";
 import PaymentSuccess from "./components/Content/PaymentSuccess";
 import PaymentFailed from "./components/Content/PaymentFailed";
 import PaymentHistory from "./components/Content/PaymentHistory";
+import ResetPassword from "./components/headerfooter/ResetPassword";
+import Chatbot from "./components/Chat/ChatBot";
+import Vouchers from "./components/Content/Vouchers";
 
 function App() {
   return (
@@ -35,8 +38,7 @@ function App() {
         <Routes>
           {/* Tự động chuyển về /login khi vào / */}
           <Route path="/" element={<Home />} />
-
-
+          <Route path="*" element={<div>404 - Trang không tồn tại</div>} />
           <Route path="/home" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
@@ -47,7 +49,10 @@ function App() {
           <Route path="/payment/success" element={<PaymentSuccess />} />
           <Route path="/payment/failed" element={<PaymentFailed />} />
           <Route path="/order" element={<PaymentHistory />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/voucher" element={<Vouchers />} />
         </Routes>
+        <Chatbot />
       </div>
     </>
   );
