@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import CholimexLayout from "../Layout/CholimexLayout";
 import { toast } from "react-toastify";
@@ -6,11 +6,24 @@ import { toast } from "react-toastify";
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const toastShown = useRef(false); // Biến để kiểm tra toast đã hiển thị chưa
 
   const orderId = searchParams.get("orderId");
 
   useEffect(() => {
-    toast.success(`Thanh toán đơn hàng #${orderId} thành công!`);
+    if (!toastShown.current && orderId) {
+      toast.success(`Thanh toán đơn hàng #${orderId} thành công!`, {
+        toastId: `success-${orderId}`,
+        autoClose: 3000,
+      });
+      toastShown.current = true; // Đánh dấu toast đã được hiển thị
+    } else if (!orderId) {
+      toast.error("Không tìm thấy mã đơn hàng!", {
+        toastId: "error-no-order",
+        autoClose: 3000,
+      });
+      toastShown.current = true;
+    }
   }, [orderId]);
 
   return (
@@ -21,13 +34,16 @@ const PaymentSuccess = () => {
             Thanh Toán Thành Công
           </h2>
           <p className="text-lg mb-4">
-            Cảm ơn bạn đã thanh toán đơn hàng #{orderId}.
+            Cảm ơn bạn đã thanh toán đơn hàng #{orderId || "N/A"}.
           </p>
           <p className="text-sm text-gray-600 mb-6">
             Đơn hàng của bạn đã được xác nhận và đang được xử lý.
           </p>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => {
+              toast.dismiss(); // Đóng tất cả toast trước khi điều hướng
+              setTimeout(() => navigate("/"), 500); // Trì hoãn điều hướng
+            }}
             className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
           >
             Quay lại trang chủ

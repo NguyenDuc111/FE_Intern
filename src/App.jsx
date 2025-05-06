@@ -18,19 +18,32 @@ function App() {
   return (
     <>
       <div>
-        <ToastContainer position="top-center" autoClose={3000} />
+        <ToastContainer
+          position="top-center"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          limit={1}
+        />
         {/* Cấu hình định tuyến */}
 
         <Routes>
           {/* Tự động chuyển về /login khi vào / */}
           <Route path="/" element={<Home />} />
+
+
           <Route path="/home" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/Product-detail" element={<ProductDetail />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/payment/success" element={<PaymentSuccess />} />
           <Route path="/payment/failed" element={<PaymentFailed />} />
           <Route path="/order" element={<PaymentHistory />} />

@@ -162,12 +162,16 @@ function Header() {
       setForm({ name: "", email: "", password: "", phone: "", address: "" });
     } catch (err) {
       toast.dismiss();
-      toast.error(
-        "Lỗi: " +
-          (err.response?.data?.message || "Email hoặc tài khoản không đúng")
-      );
-    }
-  };
+    
+      // Kiểm tra lỗi email đã tồn tại từ phản hồi API
+      const message = err.response?.data?.message || "";
+    
+      if (message.includes("email") && message.includes("tồn tại")) {
+        toast.error("Email này đã có người sử dụng rồi.");
+      } else {
+        toast.error("Lỗi: " + (message || "Đăng ký không thành công."));
+      }
+    }}
 
   useEffect(() => {
     const handleOutsideClick = (event) => {

@@ -253,10 +253,10 @@ const Cart = () => {
     <CholimexLayout>
       <div className="bg-gradient-to-br from-red-600 to-red-700 py-10 px-4 min-h-[60vh]">
         <div className="max-w-5xl mx-auto bg-white p-4 md:p-6 rounded-xl shadow-xl overflow-x-auto">
-          <h2 className="text-2xl font-bold text-center mb-6">🛒 Giỏ Hàng</h2>
+          <h2 className="text-3xl text-center font-semibold mb-8 text-red-700">Giỏ Hàng</h2>
 
           {cartItems.length === 0 ? (
-            <p className="text-center">Giỏ hàng đang trống.</p>
+            <p className="text-center">Giỏ hàng hiện đang trống <br /> Hãy tiếp tục mua hàng.</p>
           ) : (
             <>
               <div className="overflow-x-auto rounded-xl border border-gray-100 shadow-sm">

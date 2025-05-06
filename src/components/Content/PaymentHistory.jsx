@@ -10,6 +10,19 @@ const PaymentHistory = () => {
   const [showModal, setShowModal] = useState(false);
   const token = localStorage.getItem("token");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const ordersPerPage = 5;
+
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder);
+
+  const totalPages = Math.ceil(orders.length / ordersPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   const loadOrders = async () => {
     if (!token) {
       toast.error("Vui lòng đăng nhập để xem lịch sử mua hàng.");
@@ -29,7 +42,6 @@ const PaymentHistory = () => {
         orderData = [response.data];
       }
 
-      // Fetch product names for each order's OrderDetails
       const enrichedOrders = await Promise.all(
         orderData.map(async (order) => {
           if (order.OrderDetails && order.OrderDetails.length > 0) {
@@ -78,7 +90,7 @@ const PaymentHistory = () => {
             return {
               ...item,
               ProductName: product.ProductName || "Không xác định",
-              ImageURL: product.ImageURL || "Lỗi hiển thị hình ảnh",
+              ImageURL: product.ImageURL || "https://via.placeholder.com/80",
               UnitPrice: item.UnitPrice,
               TotalPrice: item.UnitPrice * item.Quantity,
             };
@@ -87,7 +99,7 @@ const PaymentHistory = () => {
             return {
               ...item,
               ProductName: "Không xác định",
-              ImageURL: item.ImageURL,
+              ImageURL: "https://via.placeholder.com/80",
               UnitPrice: item.UnitPrice,
               TotalPrice: item.UnitPrice * item.Quantity,
             };
@@ -113,6 +125,7 @@ const PaymentHistory = () => {
   useEffect(() => {
     loadOrders();
   }, []);
+
   const calculateDiscount = () => {
     if (!orderDetails || !selectedOrder) return 0;
     const totalProductsPrice = orderDetails.reduce(
@@ -122,138 +135,136 @@ const PaymentHistory = () => {
     const totalPaid = parseFloat(selectedOrder.TotalAmount);
     return totalProductsPrice - totalPaid;
   };
+
   return (
     <CholimexLayout>
       <div className="bg-gradient-to-br from-red-600 to-red-700 py-10 px-4 min-h-[60vh]">
-        <div className="max-w-5xl mx-auto bg-white p-4 md:p-6 rounded-xl shadow-xl">
-          <h2 className="text-2xl font-bold text-center mb-6">
-            📜 Lịch Sử Thanh Toán
+        <div className="max-w-6xl mx-auto bg-white p-6 rounded-2xl shadow-2xl">
+          <h2 className="text-3xl text-center font-semibold mb-8 text-red-700">
+            Lịch Sử Mua Hàng
           </h2>
 
           {orders.length === 0 ? (
-            <p className="text-center">
-              Bạn chưa có đơn hàng nào đã thanh toán.
+            <p className="text-center text-gray-500 text-lg">
+              Bạn chưa có đơn hàng nào được thanh toán.
             </p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-gray-700 uppercase text-xs tracking-wide">
+            <div className="overflow-x-auto rounded-xl border border-gray-200">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-100 text-gray-600 text-xs uppercase">
                   <tr>
-                    <th className="text-left px-4 py-3">Mã đơn hàng</th>
-                    <th className="text-left px-4 py-3">Tổng tiền</th>
-                    <th className="text-left px-4 py-3">Địa chỉ giao hàng</th>
-                    <th className="text-left px-4 py-3">Sản phẩm</th>
-                    <th className="text-left px-4 py-3">Số lượng</th>
-                    <th className="text-center px-4 py-3">Hành động</th>
+                    <th className="px-6 py-4 text-center">Mã Đơn</th>
+                    <th className="px-6 py-4 text-center">Tổng Tiền</th>
+                    <th className="px-6 py-4 text-center">Địa Chỉ</th>
+                    <th className="px-6 py-4 text-center">Sản Phẩm</th>
+                    <th className="px-6 py-4 text-center">Số Lượng</th>
+                    <th className="px-6 py-4 text-center">Chi Tiết</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {orders.map((order) => (
-                    <tr
-                      key={order.OrderID}
-                      className="border-t hover:bg-gray-50"
-                    >
-                      <td className="text-left px-4 py-3">#{order.OrderID}</td>
-                      <td className="text-left text-green-600 px-4 py-3 ">
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {currentOrders.map((order) => (
+                    <tr key={order.OrderID} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-center font-semibold text-gray-700">
+                        #{order.OrderID}
+                      </td>
+                      <td className="px-6 py-4 text-center text-green-600 font-bold">
                         {parseFloat(order.TotalAmount).toLocaleString()}₫
                       </td>
-                      <td className="text-left px-4 py-3">
+                      <td className="px-6 py-4 text-center">
                         {order.ShippingAddress}
                       </td>
-                      <td className="text-left px-4 py-3">
-                        {order.OrderDetails && order.OrderDetails.length > 0 ? (
-                          order.OrderDetails.map((item) => (
-                            <p key={item.OrderDetailID}>{item.ProductName}:</p>
-                          ))
-                        ) : (
-                          <p>Không có sản phẩm</p>
-                        )}
+                      <td className="px-6 py-4 text-center space-y-1">
+                        {order.OrderDetails?.map((item) => (
+                          <p key={item.OrderDetailID}>{item.ProductName}</p>
+                        ))}
                       </td>
-                      <td className="text-left px-4 py-3">
-                        {order.OrderDetails && order.OrderDetails.length > 0 ? (
-                          order.OrderDetails.map((item) => (
-                            <p key={item.OrderDetailID}>{item.Quantity}</p>
-                          ))
-                        ) : (
-                          <p>Không có số lượng</p>
-                        )}
+                      <td className="px-6 py-4 text-center">
+                        {order.OrderDetails?.map((item) => (
+                          <p key={item.OrderDetailID}>{item.Quantity}</p>
+                        ))}
                       </td>
-                      <td className="text-center px-4 py-3">
+                      <td className="px-6 py-4 text-center">
                         <button
                           onClick={() => viewOrderDetails(order)}
-                          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full shadow-md transition duration-200"
                         >
-                          Xem chi tiết
+                          Xem
                         </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-6 space-x-2">
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handlePageChange(i + 1)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium border transition ${
+                        currentPage === i + 1
+                          ? "bg-red-600 text-white border-red-600"
+                          : "bg-white text-red-600 border-red-300 hover:bg-red-100"
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
       {showModal && selectedOrder && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl relative">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-3xl relative animate-fadeIn">
             <button
               onClick={closeModal}
-              className="absolute top-2 right-2 text-gray-500 hover:text-red-600 text-xl"
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-600 text-2xl"
             >
               &times;
             </button>
-            <h2 className="text-xl font-bold mb-4 text-center gap-4 border-b pb-4">
+            <h2 className="text-2xl font-bold mb-6 text-center text-red-700">
               Chi tiết đơn hàng #{selectedOrder.OrderID}
             </h2>
 
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {orderDetails.map((item) => (
                 <div
                   key={item.OrderDetailID}
-                  className="flex items-center gap-4 border-b pb-4"
+                  className="border rounded-lg p-4 shadow-md flex gap-4"
                 >
                   <img
                     src={item.ImageURL}
                     alt={item.ProductName}
                     className="w-20 h-20 object-cover rounded"
                   />
-                  <div className="flex-1 text-left">
-                    <p>
-                      <strong>Tên sản phẩm:</strong> {item.ProductName}
-                    </p>
-                    <p>
-                      <strong>Số lượng:</strong> {item.Quantity}
-                    </p>
-                    <p>
-                      <strong>Giá đơn vị: </strong>{" "}
-                      {parseFloat(item.UnitPrice).toLocaleString()}₫
-                    </p>
-                    <p>
-                      <strong>Tổng giá:</strong>{" "}
-                      {parseFloat(item.TotalPrice).toLocaleString()}₫
+                  <div>
+                    <p className="font-semibold text-gray-800">{item.ProductName}</p>
+                    <p>Giá: {parseFloat(item.UnitPrice).toLocaleString()}₫</p>
+                    <p>Số lượng: {item.Quantity}</p>
+                    <p className="font-medium text-green-600">
+                      Thành tiền: {parseFloat(item.TotalPrice).toLocaleString()}₫
                     </p>
                   </div>
                 </div>
               ))}
-              <div className="mb-4 text-right">
-                <p>
-                  <strong>Tổng tiền sản phẩm:</strong>{" "}
-                  {orderDetails
-                    .reduce((acc, item) => acc + parseFloat(item.TotalPrice), 0)
-                    .toLocaleString()}
-                  ₫
-                </p>
-                <p className="text-red-300">
-                  <strong>Giảm giá:</strong>{" "}
-                  {calculateDiscount().toLocaleString()}₫
-                </p>
-                <p className="text-green-600">
-                  <strong>Tổng tiền đã thanh toán:</strong>{" "}
+            </div>
+
+            <div className="mt-6 text-right text-lg">
+              <p>
+                <span className="font-semibold text-gray-700">Tổng thanh toán:</span>{" "}
+                <span className="text-red-600 font-bold">
                   {parseFloat(selectedOrder.TotalAmount).toLocaleString()}₫
+                </span>
+              </p>
+              {calculateDiscount() > 0 && (
+                <p className="text-sm text-green-600">
+                  (Đã giảm: {calculateDiscount().toLocaleString()}₫)
                 </p>
-              </div>
+              )}
             </div>
           </div>
         </div>

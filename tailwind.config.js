@@ -10,4 +10,18 @@ export const theme = {
             },
         },
     },
+    theme: {
+        extend: {
+          animation: {
+            fadeIn: "fadeIn 0.4s ease-in forwards",
+          },
+          keyframes: {
+            fadeIn: {
+              from: { opacity: 0 },
+              to: { opacity: 1 },
+            },
+          },
+        },
+      },
 };
+
