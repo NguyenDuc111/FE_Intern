@@ -4,7 +4,11 @@ import Footer from "../headerfooter/Footer";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { getUserProfile, updateUserProfile } from "../../api/api";
+import {
+  getUserProfile,
+  updateUserProfile,
+  changePassword,
+} from "../../api/api";
 
 function Profile() {
   const [profile, setProfile] = useState({
@@ -19,6 +23,10 @@ function Profile() {
   const [isChanged, setIsChanged] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,6 +52,11 @@ function Profile() {
     );
   };
 
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordForm({ ...passwordForm, [name]: value });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
@@ -60,6 +73,41 @@ function Profile() {
     }
   };
 
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+
+    if (
+      passwordForm.oldPassword.length < 6 ||
+      passwordForm.newPassword.length < 6
+    ) {
+      toast.error("Mật khẩu phải có ít nhất 6 ký tự.");
+      return;
+    }
+
+    try {
+      const id = toast.loading("Đang thay đổi mật khẩu...");
+      await changePassword(
+        {
+          OldPassword: passwordForm.oldPassword,
+          NewPassword: passwordForm.newPassword,
+        },
+        token
+      );
+      toast.update(id, {
+        render: "Thay đổi mật khẩu thành công!",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+      });
+      setPasswordForm({ oldPassword: "", newPassword: "" });
+    } catch (err) {
+      toast.dismiss();
+      const message = err.response?.data?.error || "Có lỗi xảy ra.";
+      toast.error(message);
+    }
+  };
+
   const handleCancel = () => setShowConfirm(true);
 
   const confirmCancel = () => {
@@ -71,8 +119,6 @@ function Profile() {
       navigate(-1);
     }, 1500);
   };
-
-  
 
   return (
     <>
@@ -111,7 +157,6 @@ function Profile() {
               placeholder="Địa chỉ"
               className="w-full px-4 py-2 border rounded"
             />
-            
 
             <div className="flex justify-end gap-4">
               <button
@@ -134,6 +179,38 @@ function Profile() {
               </button>
             </div>
           </form>
+
+          <div className="mt-8">
+            <h3 className="text-2xl font-bold mb-4 text-black-800 text-center">
+              Đổi mật khẩu
+            </h3>
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <input
+                type="password"
+                name="oldPassword"
+                value={passwordForm.oldPassword}
+                onChange={handlePasswordChange}
+                placeholder="Mật khẩu cũ"
+                required
+                className="w-full px-4 py-2 border rounded"
+              />
+              <input
+                type="password"
+                name="newPassword"
+                value={passwordForm.newPassword}
+                onChange={handlePasswordChange}
+                placeholder="Mật khẩu mới"
+                required
+                className="w-full px-4 py-2 border rounded"
+              />
+              <button
+                type="submit"
+                className="w-full bg-[#dd3333] text-white font-bold py-2 rounded hover:bg-red-600 transition"
+              >
+                Đổi mật khẩu
+              </button>
+            </form>
+          </div>
         </div>
       </div>
       <Footer />
