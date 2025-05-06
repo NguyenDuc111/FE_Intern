@@ -165,7 +165,6 @@ export const getAllNotifications = (token) =>
   API.get("/noti-all", {
     headers: { Authorization: `Bearer ${token}` },
   });
-<<<<<<< HEAD
 
 
 
@@ -184,28 +183,3 @@ export const getAllNotifications = (token) =>
 export const updateProduct = (id, data) => API.put(`/product-update/${id}`, data);
 
 export const deleteProduct = (id) => API.delete(`/product-del/${id}`);
-=======
-// === REVIEW ===
-export const getReviewsByProduct = (id) => API.get(`/review/product/${id}`);
-
-export const createReview = (data, token) =>
-  API.post("/review-add", data, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-// === VOUCHERS ===
-export const getAvailableVouchersAPI = (token) =>
-  API.get("/vouchers", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-export const redeemVoucherAPI = (voucherId, userID, token) =>
-  API.post("/redeem-voucher", voucherId, userID, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-export const applyVoucherAPI = (data, token) =>
-  API.post("/apply-voucher", data, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
->>>>>>> 0e17ad2f071ba24daa56f228822de96f5c058f80

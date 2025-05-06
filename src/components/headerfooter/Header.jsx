@@ -182,7 +182,6 @@ function Header() {
       setForm({ name: "", email: "", password: "", phone: "", address: "" });
     } catch (err) {
       toast.dismiss();
-<<<<<<< HEAD
 
       // Kiểm tra lỗi email đã tồn tại từ phản hồi API
       const message = err.response?.data?.message || "";
@@ -191,13 +190,11 @@ function Header() {
         toast.error("Email này đã có người sử dụng rồi.");
       } else {
         toast.error("Lỗi: " + (message || "Đăng nhập không thành công."));
-=======
       const message = err.response?.data?.error || "Có lỗi xảy ra.";
       if (message.includes("email") && message.includes("tồn tại")) {
         toast.error("Email này đã có người sử dụng rồi.");
       } else {
         toast.error(message);
->>>>>>> 0e17ad2f071ba24daa56f228822de96f5c058f80
       }
     }
   };
@@ -561,5 +558,4 @@ function Header() {
     </>
   );
 }
-
-export default Header;
+}
