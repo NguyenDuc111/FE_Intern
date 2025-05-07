@@ -213,3 +213,5 @@ export const getAllUsers = () => API.get("/user-all");
 export const updateUser = (id, data) => API.put(`/update-profile/${id}`, data);
 
 export const deleteUser = (id) => API.delete(`/delete-user/${id}`);
+
+export const getRevenueStatistics = () => API.get("/static");
