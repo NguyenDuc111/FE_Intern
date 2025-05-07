@@ -6,6 +6,14 @@ import {
   deleteProduct,
   getAllCategories,
 } from "../../api/api";
+// eslint-disable-next-line no-unused-vars
+import { motion } from "framer-motion";
+import {
+  PlusIcon,
+  PencilIcon,
+  TrashIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
 
 export default function ProductPage() {
   const [categories, setCategories] = useState([]);
@@ -141,29 +149,75 @@ export default function ProductPage() {
     setSelectedCategoryIds(selectedIds);
   };
 
+  // Animation variants
+  const tableVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, staggerChildren: 0.1 },
+    },
+  };
+
+  const rowVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
+  };
+
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.4, ease: "easeOut" },
+    },
+  };
+
+  const toastVariants = {
+    hidden: { opacity: 0, x: 50 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
+    exit: { opacity: 0, x: 50, transition: { duration: 0.3 } },
+  };
+
+  const buttonVariants = {
+    hover: { scale: 1.05, transition: { duration: 0.2 } },
+    tap: { scale: 0.95 },
+  };
+
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6 text-red-600">Quản lý Sản phẩm</h1>
+    <div className="p-6 bg-gradient-to-b from-gray-250 to-gray-300 min-h-screen">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800 bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+        📦 Quản lý Sản phẩm
+      </h1>
 
       {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded mb-6">
+        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-6 shadow-md">
           {error}
         </div>
       )}
 
       {/* Toast Notification */}
       {toast && (
-        <div
-          className={`fixed top-16 right-4 px-4 py-5 rounded shadow-lg text-white ${
-            toast.type === "success" ? "bg-green-500" : "bg-red-500"
+        <motion.div
+          variants={toastVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className={`fixed top-16 right-4 px-6 py-3 rounded-lg shadow-xl text-white ${
+            toast.type === "success"
+              ? "bg-gradient-to-r from-green-500 to-green-600"
+              : "bg-gradient-to-r from-red-500 to-red-600"
           }`}
         >
           {toast.message}
-        </div>
+        </motion.div>
       )}
 
-      <button
-        className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg mb-6 transition-colors duration-200 flex items-center gap-2"
+      <motion.button
+        variants={buttonVariants}
+        whileHover="hover"
+        whileTap="tap"
+        className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-2 rounded-lg mb-6 transition-colors duration-200 flex items-center gap-2 shadow-md"
         onClick={() => {
           setShowModal(true);
           setEditProduct(null);
@@ -178,47 +232,42 @@ export default function ProductPage() {
           setSelectedCategoryIds([]);
         }}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-            clipRule="evenodd"
-          />
-        </svg>
+        <PlusIcon className="h-5 w-5" />
         Thêm sản phẩm
-      </button>
+      </motion.button>
 
-      <div className="overflow-x-auto shadow-md rounded-lg">
-        <table className="w-full text-sm text-left text-gray-500">
+      <motion.div
+        variants={tableVariants}
+        initial="hidden"
+        animate="visible"
+        className="overflow-x-auto shadow-xl rounded-xl bg-white border border-gray-200"
+      >
+        <table className="w-full text-sm text-left text-gray-600">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3">
+              <th scope="col" className="px-6 py-4 font-semibold">
                 ID
               </th>
-              <th scope="col" className="px-6 py-3">
+              <th scope="col" className="px-6 py-4 font-semibold">
                 Hình ảnh
               </th>
-              <th scope="col" className="px-6 py-3">
+              <th scope="col" className="px-6 py-4 font-semibold">
                 Tên
               </th>
-              <th scope="col" className="px-6 py-3">
+              <th scope="col" className="px-6 py-4 font-semibold">
                 Giá
               </th>
-              <th scope="col" className="px-6 py-3 text-center">
-               
+              <th scope="col" className="px-6 py-4 font-semibold text-center">
+                Hành động
               </th>
             </tr>
           </thead>
           <tbody>
             {products.map((p) => (
-              <tr
+              <motion.tr
                 key={p.ProductID}
-                className="bg-white border-b hover:bg-gray-50"
+                variants={rowVariants}
+                className="bg-white border-b hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-200"
               >
                 <td className="px-6 py-4 font-medium text-gray-900">
                   {p.ProductID}
@@ -228,80 +277,83 @@ export default function ProductPage() {
                     <img
                       src={p.ImageURL}
                       alt={p.ProductName}
-                      className="w-12 h-12 object-cover rounded"
+                      className="w-14 h-14 object-cover rounded-lg shadow-sm hover:scale-105 transition-transform duration-200"
                     />
                   ) : (
-                    "N/A"
+                    <span className="text-gray-500">N/A</span>
                   )}
                 </td>
-                <td className="px-6 py-4">{p.ProductName}</td>
+                <td className="px-6 py-4 font-medium">{p.ProductName}</td>
                 <td className="px-6 py-4">
-                  {Number(p.Price).toLocaleString("vi-VN")}đ
+                  {Number(p.Price).toLocaleString("vi-VN")}₫
                 </td>
                 <td className="px-6 py-4 text-center">
-                  <div className="flex justify-center gap-2">
-                    <button
+                  <div className="flex justify-center gap-3">
+                    <motion.button
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
                       onClick={() => handleEdit(p)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md transition-colors duration-200 text-sm"
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-1.5 rounded-lg transition-colors duration-200 flex items-center gap-1.5 shadow-sm"
                     >
+                      <PencilIcon className="h-5 w-5" />
                       Sửa
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
                       onClick={() => handleDelete(p.ProductID)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md transition-colors duration-200 text-sm"
+                      className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-1.5 rounded-lg transition-colors duration-200 flex items-center gap-1.5 shadow-sm"
                     >
+                      <TrashIcon className="h-5 w-5" />
                       Xóa
-                    </button>
+                    </motion.button>
                   </div>
                 </td>
-              </tr>
+              </motion.tr>
             ))}
           </tbody>
         </table>
-      </div>
+      </motion.div>
 
       {/* Modal */}
       {showModal && (
         <div
-          className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50"
+          className="fixed inset-0 backdrop-blur-md bg-black/60 flex items-center justify-center z-50"
           onClick={(e) => e.target === e.currentTarget && closeModal()}
         >
-          <div className="bg-white rounded-lg w-[900px] max-w-[95vw] h-[85vh] max-h-[95vh] relative flex flex-col">
+          <motion.div
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            className="bg-white rounded-2xl w-[900px] max-w-[95vw] h-[85vh] max-h-[95vh] relative flex flex-col shadow-2xl border border-gray-200"
+          >
             {/* Nút đóng (X) */}
-            <button
+            <motion.button
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
               onClick={closeModal}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors z-10"
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors z-10"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+              <XMarkIcon className="h-7 w-7" />
+            </motion.button>
 
             <div className="p-6 flex-1 flex flex-col overflow-hidden">
-              <h2 className="text-2xl font-bold mb-6">
-                {editProduct ? "Sửa sản phẩm" : "Thêm sản phẩm"}
+              <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                {editProduct ? "📝 Sửa sản phẩm" : "➕ Thêm sản phẩm"}
               </h2>
 
               <form
                 onSubmit={handleSubmit}
                 className="flex-1 flex flex-col overflow-hidden"
               >
-                <div className="grid grid-cols-2 gap-6 flex-1 overflow-y-auto pb-4">
+                <div className="grid grid-cols-2 gap-8 flex-1 overflow-y-auto pb-6">
                   {/* Cột trái */}
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <div>
-                      <label className="block mb-1 font-medium">
+                      <label className="block mb-1.5 font-medium text-gray-700">
                         Tên sản phẩm <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -314,13 +366,15 @@ export default function ProductPage() {
                             ProductName: e.target.value,
                           })
                         }
-                        className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-gray-50"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block mb-1 font-medium">Giá <span className="text-red-500">*</span></label>
+                      <label className="block mb-1.5 font-medium text-gray-700">
+                        Giá <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="number"
                         placeholder="Nhập giá"
@@ -328,14 +382,16 @@ export default function ProductPage() {
                         onChange={(e) =>
                           setFormData({ ...formData, Price: e.target.value })
                         }
-                        className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-gray-50"
                         required
                         min="0"
                       />
                     </div>
 
                     <div>
-                      <label className="block mb-1 font-medium">Mô tả</label>
+                      <label className="block mb-1.5 font-medium text-gray-700">
+                        Mô tả
+                      </label>
                       <textarea
                         placeholder="Nhập mô tả"
                         value={formData.Description}
@@ -345,18 +401,17 @@ export default function ProductPage() {
                             Description: e.target.value,
                           })
                         }
-                        className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        rows="4"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-gray-50"
+                        rows="5"
                       />
                     </div>
                   </div>
 
                   {/* Cột phải */}
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <div>
-                      <label className="block mb-1 font-medium">
+                      <label className="block mb-1.5 font-medium text-gray-700">
                         Số lượng trong kho
- 
                       </label>
                       <input
                         type="number"
@@ -368,13 +423,13 @@ export default function ProductPage() {
                             StockQuantity: e.target.value,
                           })
                         }
-                        className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-gray-50"
                         min="0"
                       />
                     </div>
 
                     <div>
-                      <label className="block mb-1 font-medium">
+                      <label className="block mb-1.5 font-medium text-gray-700">
                         URL hình ảnh
                       </label>
                       <input
@@ -384,12 +439,12 @@ export default function ProductPage() {
                         onChange={(e) =>
                           setFormData({ ...formData, ImageURL: e.target.value })
                         }
-                        className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-gray-50"
                       />
                     </div>
 
                     <div>
-                      <label className="block mb-1 font-medium">
+                      <label className="block mb-1.5 font-medium text-gray-700">
                         Thành phần
                       </label>
                       <textarea
@@ -401,20 +456,20 @@ export default function ProductPage() {
                             Ingredients: e.target.value,
                           })
                         }
-                        className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        rows="4"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-gray-50"
+                        rows="5"
                       />
                     </div>
 
                     <div>
-                      <label className="block mb-1 font-medium">
+                      <label className="block mb-1.5 font-medium text-gray-700">
                         Danh mục <span className="text-red-500">*</span>
                       </label>
                       <select
                         multiple
                         value={selectedCategoryIds}
                         onChange={handleCategoryChange}
-                        className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-gray-50"
                         required
                         size="5"
                       >
@@ -424,7 +479,7 @@ export default function ProductPage() {
                           </option>
                         ))}
                       </select>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-500 mt-1.5">
                         Giữ phím Ctrl/Cmd để chọn nhiều danh mục
                       </p>
                     </div>
@@ -432,29 +487,35 @@ export default function ProductPage() {
                 </div>
 
                 {error && (
-                  <div className="mt-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
+                  <div className="mt-4 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md">
                     {error}
                   </div>
                 )}
 
-                <div className="flex justify-end gap-2 pt-4 border-t mt-4">
-                  <button
+                <div className="flex justify-end gap-3 pt-4 border-t mt-4">
+                  <motion.button
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                     type="button"
                     onClick={closeModal}
-                    className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+                    className="px-5 py-2 bg-gradient-to-r from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 text-gray-800 rounded-lg transition-colors duration-200 shadow-md"
                   >
                     Hủy
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                     type="submit"
-                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors"
+                    className="px-5 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg transition-colors duration-200 shadow-md"
                   >
                     Lưu
-                  </button>
+                  </motion.button>
                 </div>
               </form>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>
