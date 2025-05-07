@@ -40,6 +40,8 @@ const PaymentHistory = () => {
         response.data.OrderID
       ) {
         orderData = [response.data];
+      } else {
+        throw new Error("Dữ liệu đơn hàng không hợp lệ.");
       }
 
       const enrichedOrders = await Promise.all(
@@ -72,7 +74,9 @@ const PaymentHistory = () => {
       setOrders(enrichedOrders);
     } catch (err) {
       console.error("Lỗi khi lấy lịch sử mua hàng:", err);
-      toast.error("Không thể tải lịch sử mua hàng.");
+      toast.error(
+        err.response?.data?.error || "Không thể tải lịch sử mua hàng."
+      );
       setOrders([]);
     }
   };
@@ -112,7 +116,9 @@ const PaymentHistory = () => {
       setShowModal(true);
     } catch (err) {
       console.error("Lỗi khi lấy chi tiết đơn hàng:", err);
-      toast.error("Không thể lấy chi tiết đơn hàng.");
+      toast.error(
+        err.response?.data?.error || "Không thể lấy chi tiết đơn hàng."
+      );
     }
   };
 
@@ -230,6 +236,17 @@ const PaymentHistory = () => {
               Chi tiết đơn hàng #{selectedOrder.OrderID}
             </h2>
 
+            <div className="mb-6">
+              <p className="text-sm text-gray-600">
+                Địa chỉ giao hàng: {selectedOrder.ShippingAddress}
+              </p>
+              {selectedOrder.VoucherCode && (
+                <p className="text-sm text-gray-600">
+                  Mã voucher: {selectedOrder.VoucherCode}
+                </p>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {orderDetails.map((item) => (
                 <div
@@ -242,11 +259,14 @@ const PaymentHistory = () => {
                     className="w-20 h-20 object-cover rounded"
                   />
                   <div>
-                    <p className="font-semibold text-gray-800">{item.ProductName}</p>
+                    <p className="font-semibold text-gray-800">
+                      {item.ProductName}
+                    </p>
                     <p>Giá: {parseFloat(item.UnitPrice).toLocaleString()}₫</p>
                     <p>Số lượng: {item.Quantity}</p>
                     <p className="font-medium text-green-600">
-                      Thành tiền: {parseFloat(item.TotalPrice).toLocaleString()}₫
+                      Thành tiền: {parseFloat(item.TotalPrice).toLocaleString()}
+                      ₫
                     </p>
                   </div>
                 </div>
@@ -255,7 +275,9 @@ const PaymentHistory = () => {
 
             <div className="mt-6 text-right text-lg">
               <p>
-                <span className="font-semibold text-gray-700">Tổng thanh toán:</span>{" "}
+                <span className="font-semibold text-gray-700">
+                  Tổng thanh toán:
+                </span>{" "}
                 <span className="text-red-600 font-bold">
                   {parseFloat(selectedOrder.TotalAmount).toLocaleString()}₫
                 </span>

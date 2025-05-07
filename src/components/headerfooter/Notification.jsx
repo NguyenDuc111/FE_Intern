@@ -35,7 +35,7 @@ function Notification() {
 
   useEffect(() => {
     fetchNotifications();
-  }, [token, userId]);
+  });
 
   const handleMarkAsRead = async (notificationId) => {
     if (token) {
@@ -109,15 +109,6 @@ function Notification() {
                   <div>
                     <div className="text-gray-700">
                       {noti.Message || noti.Title}
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      {new Date(noti.CreatedAt).toLocaleString("vi-VN", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
                     </div>
                   </div>
                 </div>

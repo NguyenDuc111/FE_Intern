@@ -153,6 +153,8 @@ function Header() {
         }
         const id = toast.loading("Đang đăng nhập...");
         const res = await login(form);
+        localStorage.setItem("token", res.data.token);
+        console.log("Login response:", res.data);
         const token = res.data.token;
         if (!token) {
           toast.update(id, {

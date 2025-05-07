@@ -21,6 +21,7 @@ import OrderManager from "./components/Admin/OrderManager";
 import LoyaltyManager from "./components/Admin/LoyaltyManager";
 import UserManager from "./components/Admin/UserManager";
 import ChatBot from "../src/components/Chat/ChatBot";
+import Vouchers from "../src/components/Content/Vouchers";
 function App() {
   return (
     <>
@@ -53,6 +54,7 @@ function App() {
           <Route path="/payment/success" element={<PaymentSuccess />} />
           <Route path="/payment/failed" element={<PaymentFailed />} />
           <Route path="/order" element={<PaymentHistory />} />
+          <Route path="/voucher" element={<Vouchers />} />
 
           {/* ✅ Route admin đúng cách */}
           <Route path="/admin" element={<AdminLayout />}>

@@ -1,151 +1,188 @@
-import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
-import {
-  getAvailableVouchersAPI,
-  redeemVoucherAPI,
-  getLoyaltyPointsAPI,
-} from "../../api/api";
+import React, { useEffect, useState, useCallback } from "react";
+import { debounce } from "lodash";
 import CholimexLayout from "../Layout/CholimexLayout";
-import { jwtDecode } from "jwt-decode";
+import {
+  getAvailableVouchers,
+  redeemVoucher,
+  getRedeemedVouchers,
+} from "../../api/api";
+import { toast } from "react-toastify";
 
 const Vouchers = () => {
   const [vouchers, setVouchers] = useState([]);
-  const [totalPoints, setTotalPoints] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [redeemedVouchers, setRedeemedVouchers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [redeeming, setRedeeming] = useState({});
   const token = localStorage.getItem("token");
-  let userId = null;
 
-  if (token) {
-    try {
-      const decoded = jwtDecode(token);
-      userId = decoded.UserID;
-    } catch (err) {
-      console.error("Lỗi giải mã token:", err);
-      toast.error("Token không hợp lệ. Vui lòng đăng nhập lại.");
+  const loadVouchers = async () => {
+    if (!token) {
+      toast.error("Vui lòng đăng nhập để xem voucher.");
+      return;
     }
-  }
+    try {
+      setLoading(true);
+      const response = await getAvailableVouchers(token);
+      setVouchers(response.data.vouchers || []);
+    } catch (err) {
+      console.error("Lỗi khi lấy voucher:", err);
+      toast.error(err.response?.data?.message || "Không thể tải voucher.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!token || !userId) {
-        toast.error("Vui lòng đăng nhập để tiếp tục.");
-        setIsLoading(false);
+  const loadRedeemedVouchers = async () => {
+    if (!token) {
+      toast.error("Vui lòng đăng nhập để xem voucher đã đổi.");
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await getRedeemedVouchers(token);
+      // Sắp xếp: active trước, sau đó used, rồi expired
+      const sortedVouchers = (response.data.vouchers || []).sort((a, b) => {
+        if (a.status === "active" && b.status !== "active") return -1;
+        if (a.status !== "active" && b.status === "active") return 1;
+        if (a.status === "used" && b.status === "expired") return -1;
+        if (a.status === "expired" && b.status === "used") return 1;
+        return 0;
+      });
+      setRedeemedVouchers(sortedVouchers);
+    } catch (err) {
+      console.error("Lỗi khi lấy voucher đã đổi:", err);
+      toast.error(
+        err.response?.data?.message || "Không thể tải voucher đã đổi."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRedeem = useCallback(
+    debounce(async (voucherId) => {
+      if (!token) {
+        toast.error("Vui lòng đăng nhập để đổi voucher.");
         return;
       }
-
+      setRedeeming((prev) => ({ ...prev, [voucherId]: true }));
       try {
-        const [vouchersRes, pointsRes] = await Promise.all([
-          getAvailableVouchersAPI(null, token),
-          getLoyaltyPointsAPI(null, token),
-        ]);
-
-        // Kiểm tra dữ liệu trả về từ API
-        if (!vouchersRes.data || !Array.isArray(vouchersRes.data.vouchers)) {
-          console.error("Dữ liệu voucher không hợp lệ:", vouchersRes);
-          setVouchers([]);
-          toast.error("Dữ liệu voucher không hợp lệ.");
-        } else {
-          setVouchers(vouchersRes.data.vouchers);
-        }
-
-        setTotalPoints(pointsRes.data.totalPoints || 0);
-      } catch (error) {
-        console.error("Lỗi khi tải dữ liệu:", error.message, error.stack);
-        setVouchers([]);
-        toast.error(error.response?.data?.message || "Không thể tải dữ liệu.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [token, userId]);
-
-  const handleRedeemVoucher = async (voucherId) => {
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        console.log("Decoded token:", decoded);
-        userId = decoded.UserID; // Make sure this matches the capitalization
+        const response = await redeemVoucher({ voucherId }, token);
+        toast.success(response.data.message);
+        await loadVouchers();
+        await loadRedeemedVouchers();
       } catch (err) {
-        console.error("Lỗi giải mã token:", err);
-        toast.error("Token không hợp lệ. Vui lòng đăng nhập lại.");
+        console.error("Lỗi khi đổi voucher:", err);
+        toast.error(err.response?.data?.message || "Đổi voucher thất bại.");
+      } finally {
+        setRedeeming((prev) => ({ ...prev, [voucherId]: false }));
       }
-    }
+    }, 1000),
+    [token]
+  );
 
-    try {
-      // Pass the token as the second parameter
-      const response = await redeemVoucherAPI({ voucherId }, token);
-      toast.success(response.data.message);
+  useEffect(() => {
+    loadVouchers();
+    loadRedeemedVouchers();
+  }, []);
 
-      // Cập nhật lại điểm sau khi đổi voucher
-      const pointsRes = await getLoyaltyPointsAPI(null, token);
-      setTotalPoints(pointsRes.data.totalPoints || 0);
-    } catch (error) {
-      console.error("Lỗi khi đổi voucher:", error);
-      toast.error(
-        error.response?.data?.message ||
-          "Đổi voucher thất bại. Vui lòng kiểm tra lại thông tin."
-      );
+  // Hàm hiển thị trạng thái voucher
+  const getStatusText = (status) => {
+    switch (status) {
+      case "active":
+        return "Còn hạn";
+      case "used":
+        return "Đã sử dụng";
+      case "expired":
+        return "Hết hạn";
+      default:
+        return "Không xác định";
     }
   };
 
   return (
     <CholimexLayout>
-      <div className="container mx-auto p-6 max-w-6xl">
-        <h1 className="text-4xl font-bold text-center text-red-700 mb-8">
-          Đổi Điểm Tích Lũy Lấy Voucher
-        </h1>
-        <p className="text-center text-lg mb-6">
-          Điểm tích lũy hiện tại:{" "}
-          <span className="font-semibold">{totalPoints}</span>
-        </p>
-
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-            Danh Sách Voucher Có Sẵn
+      <div className="bg-gradient-to-br from-red-600 to-red-700 py-10 px-4 min-h-[60vh]">
+        <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-xl">
+          <h2 className="text-3xl text-center font-semibold mb-8 text-red-700">
+            Danh Sách Voucher
           </h2>
-          {isLoading ? (
-            <p className="text-center text-gray-600">Đang tải...</p>
-          ) : Array.isArray(vouchers) && vouchers.length === 0 ? (
-            <p className="text-center text-gray-600">
-              Hiện không có voucher nào.
-            </p>
+          {loading ? (
+            <p className="text-center">Đang tải...</p>
+          ) : vouchers.length === 0 ? (
+            <p className="text-center">Không có voucher nào.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {vouchers.map((voucher) => (
                 <div
                   key={voucher.id}
-                  className="border rounded-lg p-6 shadow-md hover:shadow-lg transition bg-white"
+                  className="border rounded-lg p-4 shadow-md"
                 >
-                  <h3 className="text-xl font-bold text-gray-800">
-                    {voucher.name}
-                  </h3>
-                  <p className="text-gray-600">
-                    Giảm giá: {voucher.discount}
+                  <h3 className="text-lg font-semibold">{voucher.name}</h3>
+                  <p>
+                    Giảm: {voucher.discount}
                     {voucher.discount <= 100 ? "%" : " VND"}
                   </p>
-                  <p className="text-gray-600">
-                    Điểm yêu cầu: {voucher.pointsRequired}
-                  </p>
-                  <p className="text-gray-600">
-                    Giới hạn sử dụng: {voucher.usageLimit} lần
-                  </p>
-                  <p className="text-gray-600">
-                    Hết hạn sau: {voucher.expiryDays} ngày
+                  <p>Điểm cần: {voucher.pointsRequired}</p>
+                  <p>
+                    Lượt đổi còn lại:{" "}
+                    {voucher.redemptionsRemaining > 0
+                      ? `Còn ${voucher.redemptionsRemaining} lượt đổi`
+                      : "Hết lượt đổi"}
                   </p>
                   <button
-                    onClick={() => handleRedeemVoucher(voucher.id)}
-                    className="mt-4 w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={totalPoints < voucher.pointsRequired}
+                    onClick={() => handleRedeem(voucher.id)}
+                    disabled={
+                      voucher.redemptionsRemaining === 0 ||
+                      redeeming[voucher.id]
+                    }
+                    className={`mt-2 px-4 py-2 rounded text-white ${
+                      voucher.redemptionsRemaining === 0 ||
+                      redeeming[voucher.id]
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-green-600 hover:bg-green-700"
+                    }`}
                   >
-                    Đổi Voucher
+                    {redeeming[voucher.id] ? "Đang đổi..." : "Đổi Voucher"}
                   </button>
                 </div>
               ))}
             </div>
           )}
-        </section>
+
+          <h2 className="text-3xl text-center font-semibold mt-12 mb-8 text-red-700">
+            Voucher Đã Đổi
+          </h2>
+          {loading ? (
+            <p className="text-center">Đang tải...</p>
+          ) : redeemedVouchers.length === 0 ? (
+            <p className="text-center">Bạn chưa đổi voucher nào.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {redeemedVouchers.map((voucher) => (
+                <div
+                  key={voucher.voucherId}
+                  className={`border rounded-lg p-4 shadow-md ${
+                    voucher.status === "active"
+                      ? "bg-white"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
+                >
+                  <h3 className="text-lg font-semibold">{voucher.name}</h3>
+                  <p>
+                    Giảm: {voucher.discount}
+                    {voucher.isPercentage ? "%" : " VND"}
+                  </p>
+                  <p>Mã Voucher: {voucher.voucherCode}</p>
+                  <p>
+                    Hết hạn: {new Date(voucher.expiryDate).toLocaleDateString()}
+                  </p>
+                  <p>Trạng thái: {getStatusText(voucher.status)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </CholimexLayout>
   );

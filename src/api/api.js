@@ -190,17 +190,18 @@ export const createReview = (data, token) =>
   });
 
 // === VOUCHERS ===
-export const getAvailableVouchersAPI = (token) =>
+export const getAvailableVouchers = (token) =>
   API.get("/vouchers", {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-export const redeemVoucherAPI = (voucherId, userID, token) =>
-  API.post("/redeem-voucher", voucherId, userID, {
+export const redeemVoucher = (data) => API.post("/redeem-voucher", data);
+
+export const applyVoucher = (data, token) =>
+  API.post("/apply-voucher", data, {
     headers: { Authorization: `Bearer ${token}` },
   });
-
-export const applyVoucherAPI = (data, token) =>
-  API.post("/apply-voucher", data, {
+export const getRedeemedVouchers = (token) =>
+  API.get("/redeemed", {
     headers: { Authorization: `Bearer ${token}` },
   });
