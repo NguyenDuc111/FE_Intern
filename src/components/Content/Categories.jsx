@@ -29,87 +29,114 @@ function Categories() {
 
   return (
     <CholimexLayout>
-      {/* === BANNER PRO STYLE === */}
-      <div className="relative h-[280px] w-full bg-[url('./assets/image/Cholimexb3.jpg')] bg-cover bg-center  shadow-md mb-7">
-        <div className="absolute inset-0 bg-black/30 rounded-md" />
-        <div className="absolute inset-0 flex items-center justify-center flex-col text-white text-center px-4">
-          <h2 className="text-3xl font-bold mb-2 drop-shadow-lg">
-            KHÁM PHÁ TẤT CẢ DANH MỤC CHOLIMEX
-          </h2>
-          <p className="text-lg drop-shadow-md">
-            CHẤT LƯỢNG - AN TOÀN - CHUẨN VỊ VIỆT
-          </p>
+      <div className="min-h-screen bg-gradient-to-b from-[#fc00001b] to-[#f60000d8] transition-colors duration-300">
+        {/* === BANNER PRO STYLE === */}
+        <div className="relative h-[350px] w-full bg-[url('./assets/image/Cholimexb3.jpg')] bg-cover bg-center mb-8 shadow-lg transition-all duration-300 hover:shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent rounded-lg" />
+          <div className="absolute inset-0 flex items-center justify-center flex-col text-white text-center px-4 animate-fadeIn">
+            <h2 className="text-5xl font-semibold mb-4 drop-shadow-2xl bg-[#dd3333]/80 px-6 py-3 rounded-lg">
+              KHÁM PHÁ DANH MỤC CHOLIMEX
+            </h2>
+            <p className="text-xl drop-shadow-lg bg-white/20 px-4 py-2 rounded-lg tracking-wide">
+              CHẤT LƯỢNG - AN TOÀN - CHUẨN VỊ VIỆT
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* === DANH MỤC DROPDOWN === */}
-      <div className="sticky top-20 z-40 bg-white py-4 shadow-sm mb-6 px-4 max-w-screen-xl mx-auto">
-        <button
-          onClick={() => setOpen(!open)}
-          className="bg-[#dd3333] text-white px-4 py-2 rounded hover:bg-red-600 transition"
-        >
-          Danh mục sản phẩm
-        </button>
-
-        {open && (
-          <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center">
-            <div
-              ref={menuRef}
-              className="bg-white w-[90%] max-w-sm rounded-xl shadow-xl overflow-hidden"
+        {/* === DANH MỤC DROPDOWN === */}
+        <div className="sticky top-20 z-30 bg-white/95 backdrop-blur-sm py-4 shadow-md mb-8 px-4 max-w-screen-xl mx-auto rounded-lg transition-all duration-300">
+          <div className="flex justify-between items-center">
+            <button
+              onClick={() => setOpen(!open)}
+              className="bg-[#dd3333] text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center gap-2"
             >
-              <div className="flex justify-between items-center p-4 border-b">
-                <h3 className="text-lg font-bold text-[#dd3333]">
-                  Danh mục sản phẩm
-                </h3>
-                <button
-                  onClick={() => setOpen(false)}
-                  className="text-gray-500 hover:text-red-500 text-xl"
-                >
-                  &times;
-                </button>
-              </div>
-              <ul className="max-h-[60vh] overflow-y-auto divide-y divide-gray-100">
-                <li
-                  className={`px-4 py-3 cursor-pointer hover:bg-red-50 transition ${
-                    !selectedCategory ? "bg-red-50 text-[#dd3333]" : ""
-                  }`}
-                  onClick={() => {
-                    setSelectedCategory(null);
-                    setOpen(false);
-                  }}
-                >
-                  Tất cả
-                </li>
-                {categories.map((cat) => (
+              <span>Danh mục sản phẩm</span>
+              <svg
+                className={`w-5 h-5 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+            <div className="hidden md:block">
+              <FilterProduct onFilterChange={setSortType} />
+            </div>
+          </div>
+
+          {open && (
+            <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
+              <div
+                ref={menuRef}
+                className="bg-white w-[90%] max-w-md rounded-2xl shadow-2xl overflow-hidden animate-slideDown"
+              >
+                <div className="flex justify-between items-center p-6 border-b border-gray-200">
+                  <h3 className="text-xl font-semibold text-[#dd3333]">
+                    Danh mục sản phẩm
+                  </h3>
+                  <button
+                    onClick={() => setOpen(false)}
+                    className="text-gray-500 hover:text-red-600 text-2xl transition-colors"
+                  >
+                    ×
+                  </button>
+                </div>
+                <ul className="max-h-[60vh] overflow-y-auto divide-y divide-gray-100">
                   <li
-                    key={cat.CategoryID}
-                    className={`px-4 py-3 cursor-pointer hover:bg-red-50 transition ${
-                      selectedCategory === cat.CategoryName
-                        ? "bg-red-50 text-[#dd3333]"
+                    className={`px-6 py-4 cursor-pointer hover:bg-red-50/80 transition-all duration-200 ${
+                      !selectedCategory
+                        ? "bg-red-50 text-[#dd3333] font-medium"
                         : ""
                     }`}
                     onClick={() => {
-                      setSelectedCategory(cat.CategoryName);
+                      setSelectedCategory(null);
                       setOpen(false);
                     }}
                   >
-                    {cat.CategoryName}
+                    Tất cả
                   </li>
-                ))}
-              </ul>
+                  {categories.map((cat) => (
+                    <li
+                      key={cat.CategoryID}
+                      className={`px-6 py-4 cursor-pointer hover:bg-red-50/80 transition-all duration-200 ${
+                        selectedCategory === cat.CategoryName
+                          ? "bg-red-50 text-[#dd3333] font-medium"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        setSelectedCategory(cat.CategoryName);
+                        setOpen(false);
+                      }}
+                    >
+                      {cat.CategoryName}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* === LỌC & SẢN PHẨM - GẦN NHAU === */}
-      <div className="max-w-screen-xl mx-auto px-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-          <div className="flex justify-center mb-6"></div>
-          <FilterProduct onFilterChange={setSortType} />
+          )}
         </div>
 
-        <ProductCard selectedCategory={selectedCategory} sortType={sortType} />
+        {/* === LỌC & SẢN PHẨM - GẦN NHAU === */}
+        <div className="max-w-screen-xl mx-auto px-4">
+          <div className="block md:hidden mb-6">
+            <FilterProduct onFilterChange={setSortType} />
+          </div>
+
+          <div className="animate-fadeIn">
+            <ProductCard
+              selectedCategory={selectedCategory}
+              sortType={sortType}
+            />
+          </div>
+        </div>
       </div>
     </CholimexLayout>
   );

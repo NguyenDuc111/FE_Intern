@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { debounce } from "lodash";
+import { FaGift, FaCheckCircle, FaRegClock } from 'react-icons/fa';
 import CholimexLayout from "../Layout/CholimexLayout";
 import {
   getAvailableVouchers,
@@ -40,7 +41,6 @@ const Vouchers = () => {
     try {
       setLoading(true);
       const response = await getRedeemedVouchers(token);
-      // Sắp xếp: active trước, sau đó used, rồi expired
       const sortedVouchers = (response.data.vouchers || []).sort((a, b) => {
         if (a.status === "active" && b.status !== "active") return -1;
         if (a.status !== "active" && b.status === "active") return 1;
@@ -86,7 +86,6 @@ const Vouchers = () => {
     loadRedeemedVouchers();
   }, []);
 
-  // Hàm hiển thị trạng thái voucher
   const getStatusText = (status) => {
     switch (status) {
       case "active":
@@ -102,82 +101,63 @@ const Vouchers = () => {
 
   return (
     <CholimexLayout>
-      <div className="bg-gradient-to-br from-red-600 to-red-700 py-10 px-4 min-h-[60vh]">
-        <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-xl">
-          <h2 className="text-3xl text-center font-semibold mb-8 text-red-700">
-            Danh Sách Voucher
+      <div className="bg-gradient-to-br from-red-600 to-red-700 py-10 px-6 min-h-[100vh]">
+        <div className="max-w-7xl mx-auto bg-white p-8 rounded-3xl shadow-2xl overflow-hidden">
+          <h2 className="text-4xl text-center font-semibold mb-8 text-red-700 flex items-center justify-center gap-3">
+            <FaGift /> Danh Sách Voucher
           </h2>
+
           {loading ? (
-            <p className="text-center">Đang tải...</p>
+            <p className="text-center text-white">Đang tải...</p>
           ) : vouchers.length === 0 ? (
-            <p className="text-center">Không có voucher nào.</p>
+            <p className="text-center text-white">Không có voucher nào.</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {vouchers.map((voucher) => (
                 <div
                   key={voucher.id}
-                  className="border rounded-lg p-4 shadow-md"
+                  className="border border-gray-300 rounded-lg p-6 shadow-lg hover:shadow-2xl transition-all"
+                  style={{ background: "linear-gradient(to right, #F44336, #FF9800)" }}
                 >
-                  <h3 className="text-lg font-semibold">{voucher.name}</h3>
-                  <p>
-                    Giảm: {voucher.discount}
-                    {voucher.discount <= 100 ? "%" : " VND"}
-                  </p>
-                  <p>Điểm cần: {voucher.pointsRequired}</p>
-                  <p>
-                    Lượt đổi còn lại:{" "}
-                    {voucher.redemptionsRemaining > 0
-                      ? `Còn ${voucher.redemptionsRemaining} lượt đổi`
-                      : "Hết lượt đổi"}
-                  </p>
+                  <h3 className="text-xl font-semibold text-white mb-3">{voucher.name}</h3>
+                  <p className="text-white">📌 Giảm: {voucher.discount}{voucher.discount <= 100 ? "%" : " VND"}</p>
+                  <p className="text-white mt-2">🎯 Điểm cần: {voucher.pointsRequired}</p>
+                  <p className="text-white mt-2">🔄 Lượt đổi còn lại: {voucher.redemptionsRemaining > 0 ? `Còn ${voucher.redemptionsRemaining} lượt đổi` : "Hết lượt đổi"}</p>
+
                   <button
                     onClick={() => handleRedeem(voucher.id)}
-                    disabled={
-                      voucher.redemptionsRemaining === 0 ||
-                      redeeming[voucher.id]
-                    }
-                    className={`mt-2 px-4 py-2 rounded text-white ${
-                      voucher.redemptionsRemaining === 0 ||
-                      redeeming[voucher.id]
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-green-600 hover:bg-green-700"
-                    }`}
+                    disabled={voucher.redemptionsRemaining === 0 || redeeming[voucher.id]}
+                    className={`mt-4 px-6 py-2 w-full rounded-lg font-semibold text-white ${voucher.redemptionsRemaining === 0 || redeeming[voucher.id] ? "bg-gray-400 cursor-not-allowed" : "bg-yellow-600 hover:bg-yellow-700"}`}
                   >
-                    {redeeming[voucher.id] ? "Đang đổi..." : "Đổi Voucher"}
+                    {redeeming[voucher.id] ? <FaRegClock className="animate-spin" /> : "Đổi Voucher"}
                   </button>
                 </div>
               ))}
             </div>
           )}
 
-          <h2 className="text-3xl text-center font-semibold mt-12 mb-8 text-red-700">
-            Voucher Đã Đổi
+          <h2 className="text-4xl text-center font-semibold mt-12 mb-8 text-red-700 flex items-center justify-center gap-3">
+            <FaCheckCircle /> Voucher Đã Đổi
           </h2>
+
           {loading ? (
-            <p className="text-center">Đang tải...</p>
+            <p className="text-center text-white">Đang tải...</p>
           ) : redeemedVouchers.length === 0 ? (
-            <p className="text-center">Bạn chưa đổi voucher nào.</p>
+            <p className="text-center text-white">Bạn chưa đổi voucher nào.</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {redeemedVouchers.map((voucher) => (
                 <div
                   key={voucher.voucherId}
-                  className={`border rounded-lg p-4 shadow-md ${
-                    voucher.status === "active"
-                      ? "bg-white"
-                      : "bg-gray-200 text-gray-500"
-                  }`}
+                  className="border border-gray-300 rounded-lg p-6 shadow-lg hover:shadow-2xl transition-all"
+                  style={{ background: "linear-gradient(to right, #FF9800, #F44336)" }} // Same gradient as active vouchers
                 >
-                  <h3 className="text-lg font-semibold">{voucher.name}</h3>
-                  <p>
-                    Giảm: {voucher.discount}
-                    {voucher.isPercentage ? "%" : " VND"}
-                  </p>
-                  <p>Mã Voucher: {voucher.voucherCode}</p>
-                  <p>
-                    Hết hạn: {new Date(voucher.expiryDate).toLocaleDateString()}
-                  </p>
-                  <p>Trạng thái: {getStatusText(voucher.status)}</p>
+                  <h3 className="text-xl font-semibold text-white mb-3 ">{voucher.name}</h3>
+                  <p className="text-white">📌Giảm: {voucher.discount}{voucher.isPercentage ? "%" : " VND"}</p>
+                  <p className="text-white mt-2">🧾Mã Voucher: {voucher.voucherCode}</p>
+                  <p className="text-white mt-2">⏰ Hết hạn: {new Date(voucher.expiryDate).toLocaleDateString()}</p>
+                  <p className="text-white mt-2">📍Trạng thái: {getStatusText(voucher.status)}</p>
+
                 </div>
               ))}
             </div>

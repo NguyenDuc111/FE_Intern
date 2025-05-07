@@ -27,7 +27,7 @@ function Profile() {
     oldPassword: "",
     newPassword: "",
   });
-  const [activeTab, setActiveTab] = useState("profile"); // Tab switch
+  const [activeTab, setActiveTab] = useState("profile");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -124,16 +124,21 @@ function Profile() {
   return (
     <>
       <Header />
-      <div className="bg-gradient-to-r from-red-800 to-red-600 min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-5xl bg-white rounded-2xl shadow-lg p-8 space-y-8">
+      <div className="bg-gradient-to-r from-red-800 to-red-600 min-h-screen flex items-center justify-center p-6">
+        <div className="w-full max-w-6xl bg-white border-4 border-white rounded-3xl shadow-2xl p-15 space-y-20">
+
+          {/* Tiêu đề chính */}
+          <h1 className="text-2xl font-bold text-red-700 text-center uppercase tracking-wide">
+            Thông tin cá nhân
+          </h1>
 
           {/* Tab Navigation */}
-          <div className="flex border-b text-lg font-semibold">
+          <div className="flex justify-center border-b text-lg font-semibold">
             <button
               onClick={() => setActiveTab("profile")}
-              className={`px-4 py-2 transition ${
+              className={`px-6 py-3 transition ${
                 activeTab === "profile"
-                  ? "text-red-600 border-b-2 border-red-600"
+                  ? "text-red-600 border-b-4 border-red-600"
                   : "text-gray-500 hover:text-red-600"
               }`}
             >
@@ -141,9 +146,9 @@ function Profile() {
             </button>
             <button
               onClick={() => setActiveTab("security")}
-              className={`px-4 py-2 transition ${
+              className={`px-6 py-3 transition ${
                 activeTab === "security"
-                  ? "text-red-600 border-b-2 border-red-600"
+                  ? "text-red-600 border-b-4 border-red-600"
                   : "text-gray-500 hover:text-red-600"
               }`}
             >
@@ -154,9 +159,11 @@ function Profile() {
           {/* Tab: Thông tin cá nhân */}
           {activeTab === "profile" && (
             <form
-              onSubmit={handleSubmit}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
-            >
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
+            <div className="flex flex-col">
+              <label className="mb-1 font-medium text-gray-700">Họ và tên</label>
               <input
                 name="FullName"
                 value={profile.FullName}
@@ -164,6 +171,10 @@ function Profile() {
                 placeholder="Họ và tên"
                 className="px-4 py-3 border rounded-lg shadow-sm"
               />
+            </div>
+          
+            <div className="flex flex-col">
+              <label className="mb-1 font-medium text-gray-700">Email</label>
               <input
                 name="Email"
                 value={profile.Email}
@@ -171,6 +182,10 @@ function Profile() {
                 placeholder="Email"
                 className="px-4 py-3 border rounded-lg shadow-sm"
               />
+            </div>
+          
+            <div className="flex flex-col">
+              <label className="mb-1 font-medium text-gray-700">Số điện thoại</label>
               <input
                 name="Phone"
                 value={profile.Phone}
@@ -178,6 +193,10 @@ function Profile() {
                 placeholder="Số điện thoại"
                 className="px-4 py-3 border rounded-lg shadow-sm"
               />
+            </div>
+          
+            <div className="flex flex-col">
+              <label className="mb-1 font-medium text-gray-700">Địa chỉ</label>
               <input
                 name="Address"
                 value={profile.Address}
@@ -185,28 +204,29 @@ function Profile() {
                 placeholder="Địa chỉ"
                 className="px-4 py-3 border rounded-lg shadow-sm"
               />
-
-              <div className="md:col-span-2 flex justify-end gap-4 mt-4">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="px-5 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition"
-                >
-                  Huỷ
-                </button>
-                <button
-                  type="submit"
-                  disabled={!isChanged}
-                  className={`px-5 py-2 rounded-lg font-semibold text-white transition ${
-                    isChanged
-                      ? "bg-indigo-700 hover:bg-indigo-600"
-                      : "bg-gray-400 cursor-not-allowed"
-                  }`}
-                >
-                  Lưu thay đổi
-                </button>
-              </div>
-            </form>
+            </div>
+          
+            <div className="md:col-span-2 flex justify-end gap-4 mt-4">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-5 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition"
+              >
+                Huỷ
+              </button>
+              <button
+                type="submit"
+                disabled={!isChanged}
+                className={`px-5 py-2 rounded-lg font-semibold text-white transition ${
+                  isChanged
+                    ? "bg-indigo-700 hover:bg-indigo-600"
+                    : "bg-gray-400 cursor-not-allowed"
+                }`}
+              >
+                Lưu thay đổi
+              </button>
+            </div>
+          </form>
           )}
 
           {/* Tab: Đăng nhập & Bảo mật */}

@@ -61,9 +61,7 @@ const Cart = () => {
     } else if (status === "failed" && orderId) {
       toast.error(
         message
-          ? `Thanh toán đơn hàng #${orderId} thất bại: ${decodeURIComponent(
-              message
-            )}`
+          ? `Thanh toán đơn hàng #${orderId} thất bại: ${decodeURIComponent(message)}`
           : `Thanh toán đơn hàng #${orderId} thất bại.`
       );
     } else if (vnp_TransactionStatus && vnp_TxnRef) {
@@ -71,9 +69,7 @@ const Cart = () => {
         navigate(`/payment/success?orderId=${vnp_TxnRef}&status=success`);
       } else {
         navigate(
-          `/payment/failed?orderId=${vnp_TxnRef}&status=failed&message=${encodeURIComponent(
-            "Giao dịch VNPay thất bại"
-          )}`
+          `/payment/failed?orderId=${vnp_TxnRef}&status=failed&message=${encodeURIComponent("Giao dịch VNPay thất bại")}`
         );
       }
     }
@@ -308,6 +304,12 @@ const Cart = () => {
         return;
       }
 
+      console.log("Creating order with data:", {
+        items: orderDetails.items,
+        pointsUsed,
+        cartItemIds: orderDetails.cartItemIds,
+        shippingAddress,
+      });
       const orderResponse = await createOrderAPI(
         {
           items: orderDetails.items,
@@ -318,10 +320,12 @@ const Cart = () => {
         },
         token
       );
+      console.log("Order creation response:", orderResponse.data);
 
       const createdOrder = orderResponse.data;
 
       if (paymentMethod === "cod") {
+        console.log("Processing COD payment for OrderID:", createdOrder.order.OrderID);
         toast.success(`Đặt hàng thành công! Thanh toán khi nhận hàng. Đơn hàng #${createdOrder.order.OrderID}.`);
         setShowPaymentModal(false);
         setOrderDetails(null);
@@ -331,6 +335,7 @@ const Cart = () => {
         loadCart();
         navigate(`/payment/success?orderId=${createdOrder.order.OrderID}`);
       } else {
+        console.log("Processing VNPay payment for OrderID:", createdOrder.order.OrderID);
         const paymentResponse = await processPaymentAPI(
           {
             orderId: createdOrder.order.OrderID,
@@ -338,6 +343,7 @@ const Cart = () => {
           },
           token
         );
+        console.log("Payment response:", paymentResponse.data);
 
         if (paymentResponse.data.payUrl) {
           window.location.href = paymentResponse.data.payUrl;
@@ -346,7 +352,7 @@ const Cart = () => {
         }
       }
     } catch (err) {
-      console.error("Lỗi khi xử lý thanh toán:", err);
+      console.error("Error in handlePayment:", err);
       const errorMessage =
         err.response?.data?.error ||
         "Đã xảy ra lỗi khi xử lý thanh toán. Vui lòng thử lại.";
@@ -365,54 +371,57 @@ const Cart = () => {
 
   return (
     <CholimexLayout>
-      <div className="bg-gradient-to-br from-red-600 to-red-700 py-10 px-4 min-h-[60vh]">
-        <div className="max-w-5xl mx-auto bg-white p-4 md:p-6 rounded-xl shadow-xl overflow-x-auto">
-          <h2 className="text-3xl text-center font-semibold mb-8 text-red-700">
+      <div className="bg-gradient-to-br from-[#dd3333] to-[#a71d1d] py-12 px-4 sm:px-6 min-h-[60vh]">
+        <div className="max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+          <h2 className="text-3xl sm:text-4xl text-center font-bold mb-8 text-[#dd3333]">
             Giỏ Hàng
           </h2>
 
           {cartItems.length === 0 ? (
-            <p className="text-center">
-              Giỏ hàng hiện đang trống <br /> Hãy tiếp tục mua hàng.
+            <p className="text-center text-gray-600 text-lg">
+              Giỏ hàng hiện đang trống <br />{" "}
+              <a href="/Categories" className="text-[#dd3333] hover:underline">
+                Tiếp tục mua sắm
+              </a>
             </p>
           ) : (
             <>
-              <div className="overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 text-gray-700 uppercase text-xs tracking-wide">
+              <div className="overflow-x-auto rounded-xl border border-gray-100 shadow-md">
+                <table className="w-full text-sm sm:text-base">
+                  <thead className="bg-[#f8f8f8] text-[#333333] uppercase text-xs sm:text-sm tracking-wide">
                     <tr>
-                      <th className="text-left px-4 py-3">Sản phẩm</th>
-                      <th className="text-center px-4 py-3">Đơn giá</th>
-                      <th className="text-center px-4 py-3">Số lượng</th>
-                      <th className="text-center px-4 py-3">Tổng</th>
-                      <th className="text-center px-4 py-3">Xóa</th>
+                      <th className="text-left px-6 py-4 font-semibold">Sản phẩm</th>
+                      <th className="text-center px-6 py-4 font-semibold">Đơn giá</th>
+                      <th className="text-center px-6 py-4 font-semibold">Số lượng</th>
+                      <th className="text-center px-6 py-4 font-semibold">Tổng</th>
+                      <th className="text-center px-6 py-4 font-semibold">Xóa</th>
                     </tr>
                   </thead>
                   <tbody>
                     {cartItems.map((item) => (
                       <tr
                         key={item.CartID}
-                        className="border-t hover:bg-gray-50"
+                        className="border-t border-gray-100 hover:bg-[#f5c518]/10 transition-colors"
                       >
-                        <td className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3 min-w-[200px]">
+                        <td className="flex flex-col sm:flex-row sm:items-center gap-4 px-6 py-4 min-w-[250px]">
                           <img
                             src={item.Product.ImageURL}
                             alt={item.Product.ProductName}
-                            className="w-14 h-14 object-cover rounded"
+                            className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg"
                           />
                           <div>
-                            <span className="font-medium text-gray-800 block">
+                            <span className="font-semibold text-[#333333] block text-sm sm:text-base">
                               {item.Product.ProductName}
                             </span>
-                            <span className="text-xs text-gray-500 block mt-1">
+                            <span className="text-xs sm:text-sm text-gray-500 block mt-1">
                               Còn lại: {item.Product.StockQuantity}
                             </span>
                           </div>
                         </td>
-                        <td className="text-center text-gray-700 px-4 py-3">
+                        <td className="text-center text-[#333333] px-6 py-4 font-medium">
                           {parseInt(item.Product.Price).toLocaleString()}₫
                         </td>
-                        <td className="text-center px-4 py-3">
+                        <td className="text-center px-6 py-4">
                           <input
                             type="number"
                             value={item.Quantity}
@@ -423,21 +432,18 @@ const Cart = () => {
                                 item.Product.StockQuantity
                               )
                             }
-                            className="w-16 text-center border border-gray-300 rounded px-2 py-1"
+                            className="w-16 sm:w-20 text-center border border-gray-300 rounded-lg px-2 py-1.5 focus:border-[#dd3333] focus:ring-[#dd3333] text-sm"
                             min={1}
                             max={item.Product.StockQuantity}
                           />
                         </td>
-                        <td className="text-center font-semibold px-4 py-3 text-gray-800">
-                          {(
-                            parseInt(item.Product.Price) * item.Quantity
-                          ).toLocaleString()}
-                          ₫
+                        <td className="text-center font-semibold px-6 py-4 text-[#333333]">
+                          {(parseInt(item.Product.Price) * item.Quantity).toLocaleString()}₫
                         </td>
-                        <td className="text-center px-4 py-3">
+                        <td className="text-center px-6 py-4">
                           <button
                             onClick={() => handleRemoveItem(item.CartID)}
-                            className="text-red-500 hover:underline text-sm"
+                            className="text-[#dd3333] hover:text-[#a71d1d] font-medium text-sm"
                           >
                             Xóa
                           </button>
@@ -448,86 +454,95 @@ const Cart = () => {
                 </table>
               </div>
 
-              <div className="mt-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div className="w-full md:w-1/2">
-                  <div className="flex flex-col gap-2 mb-4">
-                    <label className="text-sm font-semibold">
+              <div className="mt-10 flex flex-col lg:flex-row justify-between gap-8">
+                <div className="w-full lg:w-1/2 space-y-6">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-[#333333]">
                       Sử dụng điểm tích lũy (có sẵn: {totalPoints} điểm)
                     </label>
                     <input
                       type="number"
                       value={pointsUsed}
                       onChange={handlePointsChange}
-                      className="border border-gray-300 px-3 py-2 rounded text-sm w-full"
+                      className="border border-gray-300 px-4 py-2.5 rounded-lg text-sm focus:border-[#dd3333] focus:ring-[#dd3333] w-full"
                       min={0}
                       max={totalPoints}
                       placeholder="Nhập số điểm muốn dùng"
                     />
                     <p className="text-xs text-gray-500">1 điểm = 1.000₫</p>
                   </div>
-                  <div className="flex flex-col gap-2 mb-4">
-                    <label className="text-sm font-semibold">Mã voucher</label>
-                    <div className="flex gap-2">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-[#333333]">
+                      Mã voucher
+                    </label>
+                    <div className="flex gap-3">
                       <input
                         type="text"
                         value={voucherCode}
                         onChange={(e) => setVoucherCode(e.target.value)}
-                        className="border border-gray-300 px-3 py-2 rounded text-sm w-full"
+                        className="border border-gray-300 px-4 py-2.5 rounded-lg text-sm focus:border-[#dd3333] focus:ring-[#dd3333] w-full"
                         placeholder="Nhập mã voucher"
                       />
                       <button
                         onClick={handleApplyVoucher}
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        className="bg-[#dd3333] text-white px-6 py-2.5 rounded-lg hover:bg-[#a71d1d] transition-colors"
                       >
                         Áp dụng
                       </button>
                     </div>
                     <button
                       onClick={() => setShowVoucherModal(true)}
-                      className="mt-2 text-blue-500 hover:underline text-sm"
+                      className="mt-2 text-[#dd3333] hover:text-[#a71d1d] text-sm font-medium"
                     >
                       Chọn voucher của bạn
                     </button>
                   </div>
-                  <div className="mt-4">
-                    <label className="text-sm font-semibold">
+                  <div>
+                    <label className="text-sm font-semibold text-[#333333]">
                       Địa chỉ giao hàng
                     </label>
                     <input
                       type="text"
                       value={shippingAddress}
                       onChange={(e) => setShippingAddress(e.target.value)}
-                      className="border border-gray-300 px-3 py-2 rounded text-sm w-full"
+                      className="border border-gray-300 px-4 py-2.5 rounded-lg text-sm focus:border-[#dd3333] focus:ring-[#dd3333] w-full"
                       placeholder="Nhập địa chỉ giao hàng"
                     />
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end w-full md:w-1/2">
-                  <p className="text-base text-gray-700">
-                    Tổng tiền gốc: {totalAmount.toLocaleString()}₫
-                  </p>
-                  {discountFromPoints > 0 && (
-                    <p className="text-sm text-green-600">
-                      Giảm giá từ điểm: {discountFromPoints.toLocaleString()}₫
+                <div className="w-full lg:w-1/2 bg-[#f8f8f8] p-6 rounded-xl shadow-sm">
+                  <h3 className="text-xl font-semibold text-[#333333] mb-4">
+                    Thông tin thanh toán
+                  </h3>
+                  <div className="space-y-3">
+                    <p className="text-base text-[#333333] flex justify-between">
+                      <span>Tổng tiền gốc:</span>
+                      <span>{totalAmount.toLocaleString()}₫</span>
                     </p>
-                  )}
-                  {discountFromVoucher > 0 && (
-                    <p className="text-sm text-green-600">
-                      Giảm giá từ voucher:{" "}
-                      {discountFromVoucher.toLocaleString()}₫
+                    {discountFromPoints > 0 && (
+                      <p className="text-sm text-green-600 flex justify-between">
+                        <span>Giảm giá từ điểm:</span>
+                        <span>{discountFromPoints.toLocaleString()}₫</span>
+                      </p>
+                    )}
+                    {discountFromVoucher > 0 && (
+                      <p className="text-sm text-green-600 flex justify-between">
+                        <span>Giảm giá từ voucher:</span>
+                        <span>{discountFromVoucher.toLocaleString()}₫</span>
+                      </p>
+                    )}
+                    <p className="text-lg font-semibold text-[#333333] flex justify-between">
+                      <span>Tổng tiền thanh toán:</span>
+                      <span className="text-[#dd3333] font-bold">
+                        {finalAmount.toLocaleString()}₫
+                      </span>
                     </p>
-                  )}
-                  <p className="text-lg font-semibold text-black">
-                    Tổng tiền thanh toán:
-                    <span className="font-bold text-[#dd3333]">
-                      {finalAmount.toLocaleString()}₫
-                    </span>
-                  </p>
+                  </div>
                   <button
                     onClick={handleCheckout}
                     disabled={cartItems.length === 0}
-                    className="mt-4 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="mt-6 w-full bg-gradient-to-r from-[#dd3333] to-[#a71d1d] text-white px-6 py-3 rounded-lg hover:from-[#a71d1d] hover:to-[#dd3333] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
                   >
                     Thanh toán
                   </button>
@@ -539,35 +554,42 @@ const Cart = () => {
       </div>
 
       {showPaymentModal && orderDetails && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-xl max-w-lg w-full">
-            <h3 className="text-xl font-bold mb-4">Xác nhận đơn hàng</h3>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white p-6 sm:p-8 rounded-2xl max-w-lg w-full shadow-xl">
+            <h3 className="text-2xl font-bold mb-6 text-[#dd3333] border-b border-gray-100 pb-3">
+              Xác nhận đơn hàng
+            </h3>
 
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold">Thông tin đơn hàng</h4>
-              <p className="text-sm text-gray-600">
-                Tên khách hàng: {userInfo.FullName}
-              </p>
-              <p className="text-sm text-gray-600">
-                Số điện thoại: {userInfo.Phone}
-              </p>
-              <p className="text-sm text-gray-600">
-                Địa chỉ giao hàng: {orderDetails.shippingAddress}
-              </p>
-              {orderDetails.voucherCode && (
-                <p className="text-sm text-gray-600">
-                  Mã voucher: {orderDetails.voucherCode}
+            <div className="mb-6 space-y-4">
+              <h4 className="text-lg font-semibold text-[#333333]">
+                Thông tin đơn hàng
+              </h4>
+              <div className="space-y-2 text-sm text-gray-600">
+                <p>
+                  <span className="font-medium">Tên khách hàng:</span> {userInfo.FullName}
                 </p>
-              )}
-              {orderDetails.pointsUsed > 0 && (
-                <p className="text-sm text-gray-600">
-                  Điểm tích lũy sử dụng: {orderDetails.pointsUsed} điểm
+                <p>
+                  <span className="font-medium">Số điện thoại:</span> {userInfo.Phone}
                 </p>
-              )}
+                <p>
+                  <span className="font-medium">Địa chỉ giao hàng:</span> {orderDetails.shippingAddress}
+                </p>
+                {orderDetails.voucherCode && (
+                  <p>
+                    <span className="font-medium">Mã voucher:</span> {orderDetails.voucherCode}
+                  </p>
+                )}
+                {orderDetails.pointsUsed > 0 && (
+                  <p>
+                    <span className="font-medium">Điểm tích lũy sử dụng:</span>{" "}
+                    {orderDetails.pointsUsed} điểm
+                  </p>
+                )}
+              </div>
 
               <div className="mt-4">
-                <h5 className="text-sm font-semibold">Sản phẩm:</h5>
-                <ul className="list-disc pl-5 text-sm">
+                <h5 className="text-sm font-semibold text-[#333333]">Sản phẩm:</h5>
+                <ul className="list-disc pl-5 text-sm text-gray-600">
                   {orderDetails.items.map((item, index) => (
                     <li key={index}>
                       {cartItems.find(
@@ -579,70 +601,67 @@ const Cart = () => {
                 </ul>
               </div>
 
-              <div className="mt-4">
-                <p className="text-sm">
-                  Tổng tiền gốc:
-                  {orderDetails.priceDetails.totalAmountBeforeDiscount.toLocaleString()}
-                  ₫
+              <div className="mt-4 space-y-2">
+                <p className="text-sm text-[#333333] flex justify-between">
+                  <span>Tổng tiền gốc:</span>
+                  <span>{orderDetails.priceDetails.totalAmountBeforeDiscount.toLocaleString()}₫</span>
                 </p>
                 {orderDetails.priceDetails.discountFromPoints > 0 && (
-                  <p className="text-sm text-green-600">
-                    Giảm từ điểm tích lũy:
-                    {orderDetails.priceDetails.discountFromPoints.toLocaleString()}
-                    ₫
+                  <p className="text-sm text-green-600 flex justify-between">
+                    <span>Giảm từ điểm tích lũy:</span>
+                    <span>{orderDetails.priceDetails.discountFromPoints.toLocaleString()}₫</span>
                   </p>
                 )}
                 {orderDetails.priceDetails.discountFromVoucher > 0 && (
-                  <p className="text-sm text-green-600">
-                    Giảm từ voucher:
-                    {orderDetails.priceDetails.discountFromVoucher.toLocaleString()}
-                    ₫
+                  <p className="text-sm text-green-600 flex justify-between">
+                    <span>Giảm từ voucher:</span>
+                    <span>{orderDetails.priceDetails.discountFromVoucher.toLocaleString()}₫</span>
                   </p>
                 )}
-                <p className="text-sm font-semibold">
-                  Tổng tiền thanh toán:
-                  {orderDetails.priceDetails.finalAmount.toLocaleString()}₫
+                <p className="text-sm font-semibold text-[#333333] flex justify-between">
+                  <span>Tổng tiền thanh toán:</span>
+                  <span className="text-[#dd3333]">{orderDetails.priceDetails.finalAmount.toLocaleString()}₫</span>
                 </p>
               </div>
             </div>
 
-            <h4 className="text-lg font-semibold mb-2">
+            <h4 className="text-lg font-semibold text-[#333333] mb-3">
               Chọn phương thức thanh toán
             </h4>
-            <div className="flex flex-col gap-4">
-              <label className="flex items-center gap-2">
+            <div className="flex flex-col gap-4 mb-6">
+              <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="radio"
                   name="paymentMethod"
                   value="vnpay"
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="form-radio"
+                  className="form-radio h-5 w-5 text-[#dd3333]"
                 />
-                <span>VNPay</span>
+                <span className="text-sm text-[#333333]">VNPay</span>
               </label>
-              <label className="flex items-center gap-2">
+              <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="radio"
                   name="paymentMethod"
                   value="cod"
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="form-radio"
+                  className="form-radio h-5 w-5 text-[#dd3333]"
                 />
-                <span>Thanh toán khi nhận hàng</span>
+                <span className="text-sm text-[#333333]">Thanh toán khi nhận hàng</span>
               </label>
             </div>
 
-            <div className="flex justify-end gap-2 mt-6">
+            <div className="flex justify-end gap-3">
               <button
                 onClick={handleCancelPayment}
-                className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
+                className="bg-gray-200 text-[#333333] px-5 py-2.5 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 Hủy
               </button>
               <button
                 onClick={handlePayment}
                 disabled={!paymentMethod}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+                className="bg-[#dd3333] text-white px-5 py-2.5 rounded-lg hover:bg-[#a71d1d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Xác nhận thanh toán
               </button>
@@ -652,45 +671,43 @@ const Cart = () => {
       )}
 
       {showVoucherModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-xl max-w-3xl w-full">
-            <h3 className="text-2xl font-bold mb-6 text-center">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white p-6 sm:p-8 rounded-2xl max-w-3xl w-full shadow-xl">
+            <h3 className="text-2xl font-bold mb-6 text-center text-[#dd3333]">
               Chọn Voucher Của Bạn
             </h3>
             {redeemedVouchers.length === 0 ? (
-              <p className="text-center text-gray-600">
+              <p className="text-center text-gray-600 text-lg">
                 Bạn chưa có voucher nào khả dụng.
               </p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
                 {redeemedVouchers.map((voucher) => (
                   <div
                     key={voucher.voucherId}
                     onClick={() => handleSelectVoucher(voucher)}
                     className={`border rounded-lg p-4 cursor-pointer transition-all ${
                       selectedVoucher?.voucherId === voucher.voucherId
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-300 hover:bg-gray-100"
+                        ? "border-[#f5c518] bg-[#f5c518]/10"
+                        : "border-gray-200 hover:border-[#f5c518] hover:bg-[#f5c518]/5"
                     }`}
                   >
-                    <h4 className="text-lg font-semibold text-gray-800">
+                    <h4 className="text-lg font-semibold text-[#333333]">
                       {voucher.name}
                     </h4>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 text-sm">
                       Giảm: {voucher.discount}
                       {voucher.isPercentage ? "%" : " VND"}
                     </p>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 text-sm">
                       Mã Voucher: {voucher.voucherCode}
                     </p>
-                    <p className="text-gray-600">
-                      Hết hạn:{" "}
-                      {new Date(voucher.expiryDate).toLocaleDateString()}
+                    <p className="text-gray-600 text-sm">
+                      Hết hạn: {new Date(voucher.expiryDate).toLocaleDateString()}
                     </p>
                     {voucher.minOrderValue > 0 && (
-                      <p className="text-gray-600">
-                        Đơn hàng tối thiểu:{" "}
-                        {voucher.minOrderValue.toLocaleString()}₫
+                      <p className="text-gray-600 text-sm">
+                        Đơn hàng tối thiểu: {voucher.minOrderValue.toLocaleString()}₫
                       </p>
                     )}
                   </div>
@@ -700,7 +717,7 @@ const Cart = () => {
             <div className="flex justify-end mt-6">
               <button
                 onClick={() => setShowVoucherModal(false)}
-                className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
+                className="bg-gray-200 text-[#333333] px-5 py-2.5 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 Đóng
               </button>

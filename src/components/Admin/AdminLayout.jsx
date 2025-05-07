@@ -88,6 +88,15 @@ export default function AdminLayout() {
           <NavLink to="/admin/users" className={navLinkClass}>
             Người Dùng
           </NavLink>
+          <NavLink to="/admin/khuyen-mai" className={navLinkClass}>
+            Khuyến Mãi
+          </NavLink>
+          <NavLink to="/admin/quan-ly-voucher" className={navLinkClass}>
+            Thông Báo
+          </NavLink>
+          <NavLink to="/admin/quan-ly-binh-luan" className={navLinkClass}>
+            Review
+          </NavLink>
         </nav>
       </aside>
 

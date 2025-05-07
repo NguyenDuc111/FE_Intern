@@ -8,10 +8,9 @@ import {
   removeFromWishlistAPI,
 } from "../../api/api";
 import { FiShoppingCart, FiHeart } from "react-icons/fi";
-import { AiFillStar } from "react-icons/ai";
+import { AiFillStar, AiFillHeart } from "react-icons/ai";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { AiFillHeart } from "react-icons/ai"; // nhớ import thêm
 
 function ProductCard({ selectedCategory, sortType }) {
   const [products, setProducts] = useState([]);
@@ -141,13 +140,13 @@ function ProductCard({ selectedCategory, sortType }) {
 
   return (
     <div className="max-w-screen-xl mx-auto px-4 py-10">
-      <div className="flex justify-center mb-6">
-        <h2 className="text-2xl font-bold text-white text-center px-6 py-3 rounded-md bg-gradient-to-r from-red-600 to-red-700 shadow-md">
+      <div className="flex justify-center mb-8">
+        <h2 className="text-3xl font-semibold text-white bg-gradient-to-r from-red-600 to-red-700 px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
           {selectedCategory ? selectedCategory : "Tất cả sản phẩm"}
         </h2>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
         {currentProducts.map((p) => {
           const hasDiscount = p.OldPrice && p.OldPrice > p.Price;
           const isFavorite = wishlist.some(
@@ -158,26 +157,28 @@ function ProductCard({ selectedCategory, sortType }) {
             <div
               key={p.ProductID}
               onClick={() => navigate(`/product/${p.ProductID}`)}
-              className="cursor-pointer bg-white border rounded-lg p-3 shadow-md hover:shadow-xl transition flex flex-col relative group"
+              className="bg-white border border-gray-100 rounded-xl p-4 shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 transform group cursor-pointer overflow-hidden flex flex-col min-h-[360px]"
             >
-              <div className="relative">
+              <div className="relative w-full h-48">
                 <img
                   src={p.ImageURL || "/default.jpg"}
                   alt={p.ProductName}
-                  className="w-full h-[180px] object-cover rounded mb-2"
+                  className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
                 />
                 {hasDiscount && (
-                  <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded shadow font-bold z-10">
+                  <span className="absolute top-2 right-2 bg-red-600 text-white text-sm font-semibold px-3 py-1 rounded-full shadow-md animate-pulse-once">
                     -{Math.round(((p.OldPrice - p.Price) / p.OldPrice) * 100)}%
                   </span>
                 )}
                 {p.Rating && (
-                  <div className="absolute bottom-2 left-2 flex items-center text-yellow-500 text-sm bg-white/80 px-1 rounded z-10">
+                  <div className="absolute bottom-2 left-2 flex items-center bg-white/90 px-2 py-1 rounded-lg shadow-sm">
                     {[...Array(5)].map((_, i) => (
                       <AiFillStar
                         key={i}
                         className={
-                          i < p.Rating ? "text-yellow-400" : "text-gray-300"
+                          i < p.Rating
+                            ? "text-yellow-500"
+                            : "text-gray-300"
                         }
                       />
                     ))}
@@ -185,56 +186,57 @@ function ProductCard({ selectedCategory, sortType }) {
                 )}
               </div>
 
-              <h3 className="text-sm font-semibold text-gray-800 text-center min-h-[40px] line-clamp-2 mb-1">
+              <h3 className="text-base font-semibold text-gray-900 mt-3 line-clamp-2 hover:text-[#dd3333] transition-colors min-h-[48px]">
                 {p.ProductName}
               </h3>
 
-              <div className="text-left text-sm font-bold mb-2">
+              <div className="flex items-center justify-between mt-2 min-h-[24px]">
+                <span className="text-lg font-bold text-[#dd3333]">
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(p.Price)}
+                </span>
                 {hasDiscount && (
-                  <span className="line-through text-gray-400 mr-2 text-xs">
+                  <span className="text-gray-500 line-through text-sm">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
                     }).format(p.OldPrice)}
                   </span>
                 )}
-                <span className="text-[#dd3333] text-[16px]">
-                  {new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }).format(p.Price)}
-                </span>
               </div>
 
-              <div className="flex justify-end mt-auto gap-2">
+              <div className="flex justify-end items-center mt-auto pt-4 gap-2">
                 <button
                   onClick={(e) => {
-                    e.stopPropagation(); // Ngăn lan sự kiện ra thẻ cha
-                    toggleWishlist(p); // Gọi hàm thêm yêu thích
+                    e.stopPropagation();
+                    toggleWishlist(p);
                   }}
                   title="Yêu thích"
-                  className={`p-2 rounded-full border transition hover:scale-110 ${
+                  className={`p-2 rounded-full border transition-all duration-300 hover:bg-red-100 hover:scale-110 ${
                     isFavorite
-                      ? "bg-[#ffe6e6] border-red-400 text-red-500"
-                      : "border-gray-300 hover:bg-pink-100"
+                      ? "bg-red-50 border-red-300 text-[#dd3333]"
+                      : "border-gray-200"
                   }`}
                 >
                   {isFavorite ? (
-                    <AiFillHeart size={18} className="text-[#dd3333]" />
+                    <AiFillHeart size={20} className="text-[#dd3333]" />
                   ) : (
-                    <FiHeart size={18} />
+                    <FiHeart size={20} />
                   )}
                 </button>
 
                 <button
                   onClick={(e) => {
-                    e.stopPropagation(); // Ngăn sự kiện lan lên card sản phẩm
-                    handleAddToCart(p); // Xử lý thêm vào giỏ
+                    e.stopPropagation();
+                    handleAddToCart(p);
                   }}
                   title="Thêm vào giỏ"
-                  className="p-2 rounded-full border border-gray-300 hover:bg-[#dd3333] hover:text-white transition hover:scale-110"
+                  className="bg-[#dd3333] text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-700 hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
                 >
                   <FiShoppingCart size={18} />
+                  <span>Thêm</span>
                 </button>
               </div>
             </div>
@@ -248,10 +250,10 @@ function ProductCard({ selectedCategory, sortType }) {
             <button
               key={i}
               onClick={() => setCurrentPage(i + 1)}
-              className={`px-3 py-1 border rounded ${
+              className={`px-4 py-2 border rounded-lg transition-all duration-300 ${
                 currentPage === i + 1
-                  ? "bg-[#dd3333] text-white"
-                  : "hover:bg-gray-100"
+                  ? "bg-[#dd3333] text-white shadow-md"
+                  : "bg-white hover:bg-gray-100 border-gray-300"
               }`}
             >
               {i + 1}

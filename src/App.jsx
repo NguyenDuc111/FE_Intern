@@ -23,6 +23,10 @@ import UserManager from "./components/Admin/UserManager";
 import ChatBot from "../src/components/Chat/ChatBot";
 import AdminLogin from "./components/Admin/Login/AdminLogin";
 import Vouchers from "../src/components/Content/Vouchers";
+import ScrollToTop from "./components/Layout/ScrollToTop";
+import PromotionManager from "./components/Admin/PromotionManager";
+import ReviewManager from "./components/Admin/ReviewManager";
+import VoucherManager from "./components/Admin/VoucherManager";
 function App() {
   return (
     <>
@@ -39,12 +43,13 @@ function App() {
           pauseOnHover
           limit={1}
         />
+        <ScrollToTop/>
         {/* Cấu hình định tuyến */}
 
         <Routes>
           {/* Tự động chuyển về /login khi vào / */}
           <Route path="/" element={<Home />} />
-
+          
           <Route path="/home" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
@@ -67,6 +72,9 @@ function App() {
             <Route path="orders" element={<OrderManager />} />
             <Route path="loyalty" element={<LoyaltyManager />} />
             <Route path="users" element={<UserManager />} />
+            <Route path="khuyen-mai" element={<PromotionManager />} />
+            <Route path="quan-ly-binh-luan" element={<ReviewManager />} />
+            <Route path="quan-ly-voucher" element={<VoucherManager />} />
           </Route>
         </Routes>
         <ChatBot />

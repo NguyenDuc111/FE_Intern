@@ -281,7 +281,7 @@ function Header() {
                   onClick={(e) => {
                     e.preventDefault();
                     toast.info("Đang chuyển đến giỏ hàng...");
-                    setTimeout(() => navigate("/cart"), 1500);
+                    setTimeout(() => navigate("/cart"), 500);
                   }}
                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
@@ -339,8 +339,8 @@ function Header() {
                   to="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    toast.info("Đang chuyển đến giỏ hàng...");
-                    setTimeout(() => navigate("/cart"), 1500);
+                    
+                    setTimeout(() => navigate("/cart"), 100);
                   }}
                   className="relative text-black hover:text-[#dd3333]"
                 >
