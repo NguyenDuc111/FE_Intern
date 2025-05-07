@@ -107,7 +107,7 @@ const Cart = () => {
       return;
     }
     try {
-      const res = await getUserProfile(userId, token); 
+      const res = await getUserProfile(userId, token);
       setUserInfo({
         FullName: res.data.FullName || "Không có thông tin",
         Phone: res.data.Phone || "Không có thông tin",
@@ -213,10 +213,11 @@ const Cart = () => {
       const createdOrder = orderResponse.data;
 
       if (paymentMethod === "cod") {
-        toast.success("Đặt hàng thành công! Thanh toán khi nhận hàng.");
+        toast.success(`Đặt hàng thành công! Thanh toán khi nhận hàng. Đơn hàng #${createdOrder.order.OrderID}.`);
         setShowPaymentModal(false);
         setOrderDetails(null);
         loadCart();
+        navigate(`/payment/success?orderId=${createdOrder.order.OrderID}`);
       } else {
         const paymentResponse = await processPaymentAPI(
           {

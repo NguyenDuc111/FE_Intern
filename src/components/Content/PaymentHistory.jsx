@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import CholimexLayout from "../Layout/CholimexLayout";
 import { getAllOrders, getOrderById, getProductById } from "../../api/api";
 import { toast } from "react-toastify";
@@ -9,6 +10,7 @@ const PaymentHistory = () => {
   const [orderDetails, setOrderDetails] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const token = localStorage.getItem("token");
+  const [searchParams] = useSearchParams();
 
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 5;
@@ -70,6 +72,19 @@ const PaymentHistory = () => {
       );
 
       setOrders(enrichedOrders);
+
+      // Nếu có orderId từ query, tự động mở chi tiết đơn hàng
+      const orderIdFromQuery = searchParams.get("orderId");
+      if (orderIdFromQuery) {
+        const orderToView = enrichedOrders.find(
+          (order) => order.OrderID === parseInt(orderIdFromQuery)
+        );
+        if (orderToView) {
+          viewOrderDetails(orderToView);
+        } else {
+          toast.error(`Không tìm thấy đơn hàng #${orderIdFromQuery}`);
+        }
+      }
     } catch (err) {
       console.error("Lỗi khi lấy lịch sử mua hàng:", err);
       toast.error("Không thể tải lịch sử mua hàng.");
@@ -122,10 +137,6 @@ const PaymentHistory = () => {
     setOrderDetails([]);
   };
 
-  useEffect(() => {
-    loadOrders();
-  }, []);
-
   const calculateDiscount = () => {
     if (!orderDetails || !selectedOrder) return 0;
     const totalProductsPrice = orderDetails.reduce(
@@ -134,6 +145,25 @@ const PaymentHistory = () => {
     );
     const totalPaid = parseFloat(selectedOrder.TotalAmount);
     return totalProductsPrice - totalPaid;
+  };
+
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case "Pending":
+        return "Chờ xử lý";
+      case "Processing":
+        return "Đang xử lý";
+      case "Paid":
+        return "Đã thanh toán";
+      case "Cancelled":
+        return "Đã hủy";
+      default:
+        return status ?? "N/A";
+    }
   };
 
   return (
@@ -156,6 +186,7 @@ const PaymentHistory = () => {
                     <th className="px-6 py-4 text-center">Mã Đơn</th>
                     <th className="px-6 py-4 text-center">Tổng Tiền</th>
                     <th className="px-6 py-4 text-center">Địa Chỉ</th>
+                    <th className="px-6 py-4 text-center">Trạng Thái</th>
                     <th className="px-6 py-4 text-center">Sản Phẩm</th>
                     <th className="px-6 py-4 text-center">Số Lượng</th>
                     <th className="px-6 py-4 text-center">Chi Tiết</th>
@@ -172,6 +203,21 @@ const PaymentHistory = () => {
                       </td>
                       <td className="px-6 py-4 text-center">
                         {order.ShippingAddress}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span
+                          className={`px-2 py-1 rounded text-white text-sm ${
+                            order.Status === "Paid"
+                              ? "bg-green-500"
+                              : order.Status === "Processing"
+                              ? "bg-yellow-500"
+                              : order.Status === "Pending"
+                              ? "bg-blue-500"
+                              : "bg-red-500"
+                          }`}
+                        >
+                          {getStatusDisplay(order.Status)}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-center space-y-1">
                         {order.OrderDetails?.map((item) => (
@@ -224,7 +270,7 @@ const PaymentHistory = () => {
               onClick={closeModal}
               className="absolute top-4 right-4 text-gray-500 hover:text-red-600 text-2xl"
             >
-              &times;
+              ×
             </button>
             <h2 className="text-2xl font-bold mb-6 text-center text-red-700">
               Chi tiết đơn hàng #{selectedOrder.OrderID}
@@ -265,6 +311,22 @@ const PaymentHistory = () => {
                   (Đã giảm: {calculateDiscount().toLocaleString()}₫)
                 </p>
               )}
+              <p>
+                <span className="font-semibold text-gray-700">Trạng thái:</span>{" "}
+                <span
+                  className={`px-2 py-1 rounded text-white text-sm ${
+                    selectedOrder.Status === "Paid"
+                      ? "bg-green-500"
+                      : selectedOrder.Status === "Processing"
+                      ? "bg-yellow-500"
+                      : selectedOrder.Status === "Pending"
+                      ? "bg-blue-500"
+                      : "bg-red-500"
+                  }`}
+                >
+                  {getStatusDisplay(selectedOrder.Status)}
+                </span>
+              </p>
             </div>
           </div>
         </div>

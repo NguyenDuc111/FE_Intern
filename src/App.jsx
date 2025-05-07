@@ -21,6 +21,7 @@ import OrderManager from "./components/Admin/OrderManager";
 import LoyaltyManager from "./components/Admin/LoyaltyManager";
 import UserManager from "./components/Admin/UserManager";
 import ChatBot from "../src/components/Chat/ChatBot";
+import AdminLogin from "./components/Admin/Login/AdminLogin";
 function App() {
   return (
     <>
@@ -56,6 +57,7 @@ function App() {
 
           {/* ✅ Route admin đúng cách */}
           <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/admin/login" element={<AdminLogin />} />
             <Route index element={<Dashboard />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="products" element={<ProductManager />} />

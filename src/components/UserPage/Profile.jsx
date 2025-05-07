@@ -27,6 +27,7 @@ function Profile() {
     oldPassword: "",
     newPassword: "",
   });
+  const [activeTab, setActiveTab] = useState("profile"); // Tab switch
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -124,67 +125,96 @@ function Profile() {
     <>
       <Header />
       <div className="bg-gradient-to-r from-red-800 to-red-600 min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-3xl rounded-2xl bg-white p-10 text-gray-900 shadow-xl">
-          <h2 className="text-3xl font-bold mb-8 text-black-800 text-center">
-            Cập nhật thông tin
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              name="FullName"
-              value={profile.FullName}
-              onChange={handleChange}
-              placeholder="Họ tên"
-              className="w-full px-4 py-2 border rounded"
-            />
-            <input
-              name="Email"
-              value={profile.Email}
-              onChange={handleChange}
-              placeholder="Email"
-              className="w-full px-4 py-2 border rounded"
-            />
-            <input
-              name="Phone"
-              value={profile.Phone}
-              onChange={handleChange}
-              placeholder="Số điện thoại"
-              className="w-full px-4 py-2 border rounded"
-            />
-            <input
-              name="Address"
-              value={profile.Address}
-              onChange={handleChange}
-              placeholder="Địa chỉ"
-              className="w-full px-4 py-2 border rounded"
-            />
+        <div className="w-full max-w-5xl bg-white rounded-2xl shadow-lg p-8 space-y-8">
 
-            <div className="flex justify-end gap-4">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded"
-              >
-                Huỷ
-              </button>
-              <button
-                type="submit"
-                disabled={!isChanged}
-                className={`px-4 py-2 rounded text-white transition ${
-                  isChanged
-                    ? "bg-indigo-800 hover:bg-indigo-700"
-                    : "bg-gray-400 cursor-not-allowed"
-                }`}
-              >
-                Lưu thay đổi
-              </button>
-            </div>
-          </form>
+          {/* Tab Navigation */}
+          <div className="flex border-b text-lg font-semibold">
+            <button
+              onClick={() => setActiveTab("profile")}
+              className={`px-4 py-2 transition ${
+                activeTab === "profile"
+                  ? "text-red-600 border-b-2 border-red-600"
+                  : "text-gray-500 hover:text-red-600"
+              }`}
+            >
+              👤 Thông tin cá nhân
+            </button>
+            <button
+              onClick={() => setActiveTab("security")}
+              className={`px-4 py-2 transition ${
+                activeTab === "security"
+                  ? "text-red-600 border-b-2 border-red-600"
+                  : "text-gray-500 hover:text-red-600"
+              }`}
+            >
+              🔐 Đăng nhập & Bảo mật
+            </button>
+          </div>
 
-          <div className="mt-8">
-            <h3 className="text-2xl font-bold mb-4 text-black-800 text-center">
-              Đổi mật khẩu
-            </h3>
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          {/* Tab: Thông tin cá nhân */}
+          {activeTab === "profile" && (
+            <form
+              onSubmit={handleSubmit}
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+              <input
+                name="FullName"
+                value={profile.FullName}
+                onChange={handleChange}
+                placeholder="Họ và tên"
+                className="px-4 py-3 border rounded-lg shadow-sm"
+              />
+              <input
+                name="Email"
+                value={profile.Email}
+                onChange={handleChange}
+                placeholder="Email"
+                className="px-4 py-3 border rounded-lg shadow-sm"
+              />
+              <input
+                name="Phone"
+                value={profile.Phone}
+                onChange={handleChange}
+                placeholder="Số điện thoại"
+                className="px-4 py-3 border rounded-lg shadow-sm"
+              />
+              <input
+                name="Address"
+                value={profile.Address}
+                onChange={handleChange}
+                placeholder="Địa chỉ"
+                className="px-4 py-3 border rounded-lg shadow-sm"
+              />
+
+              <div className="md:col-span-2 flex justify-end gap-4 mt-4">
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="px-5 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition"
+                >
+                  Huỷ
+                </button>
+                <button
+                  type="submit"
+                  disabled={!isChanged}
+                  className={`px-5 py-2 rounded-lg font-semibold text-white transition ${
+                    isChanged
+                      ? "bg-indigo-700 hover:bg-indigo-600"
+                      : "bg-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  Lưu thay đổi
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Tab: Đăng nhập & Bảo mật */}
+          {activeTab === "security" && (
+            <form
+              onSubmit={handlePasswordSubmit}
+              className="space-y-5 max-w-md mx-auto"
+            >
               <input
                 type="password"
                 name="oldPassword"
@@ -192,7 +222,7 @@ function Profile() {
                 onChange={handlePasswordChange}
                 placeholder="Mật khẩu cũ"
                 required
-                className="w-full px-4 py-2 border rounded"
+                className="w-full px-4 py-3 border rounded-lg shadow-sm"
               />
               <input
                 type="password"
@@ -201,16 +231,16 @@ function Profile() {
                 onChange={handlePasswordChange}
                 placeholder="Mật khẩu mới"
                 required
-                className="w-full px-4 py-2 border rounded"
+                className="w-full px-4 py-3 border rounded-lg shadow-sm"
               />
               <button
                 type="submit"
-                className="w-full bg-[#dd3333] text-white font-bold py-2 rounded hover:bg-red-600 transition"
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg transition"
               >
                 Đổi mật khẩu
               </button>
             </form>
-          </div>
+          )}
         </div>
       </div>
       <Footer />
