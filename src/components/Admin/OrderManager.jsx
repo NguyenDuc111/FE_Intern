@@ -36,6 +36,7 @@ export default function OrderManager() {
   // Kiểm tra quyền admin
   let decoded = {};
   let isAdmin = false;
+  let adminCheckMessage = "";
   try {
     if (token) {
       decoded = jwtDecode(token);
@@ -45,16 +46,31 @@ export default function OrderManager() {
         decoded.is_admin ||
         decoded.role === "admin" ||
         decoded.role === "Admin" ||
+        decoded.RoleName === "admin" ||
+        decoded.RoleName === "Admin" ||
         false;
       console.log("Token:", token);
       console.log("Decoded Token:", decoded);
       console.log("Current User:", { UserID: decoded.UserID, isAdmin });
+
+      // Thông báo chi tiết nếu không phải admin
+      if (!isAdmin) {
+        adminCheckMessage =
+          "Tài khoản không có quyền admin. Kiểm tra các trường: " +
+          `isAdmin: ${decoded.isAdmin}, ` +
+          `is_admin: ${decoded.is_admin}, ` +
+          `role: ${decoded.role}, ` +
+          `RoleName: ${decoded.RoleName}`;
+        console.warn(adminCheckMessage);
+      }
     } else {
       console.error("No token found in localStorage");
+      adminCheckMessage = "Không tìm thấy token trong localStorage. Vui lòng đăng nhập lại.";
     }
   } catch (err) {
     console.error("Error decoding token:", err);
-    toast.error("Token không hợp lệ. Vui lòng đăng nhập lại.");
+    adminCheckMessage = "Token không hợp lệ. Vui lòng đăng nhập lại.";
+    toast.error(adminCheckMessage);
   }
 
   useEffect(() => {
@@ -189,7 +205,13 @@ export default function OrderManager() {
   console.log("All Order Statuses:", orders.map((o) => o.Status));
 
   if (!isAdmin) {
-    return <div className="p-6 text-red-700">Bạn không có quyền truy cập trang này.</div>;
+    return (
+      <div className="p-6 text-red-700">
+        Bạn không có quyền truy cập trang này.
+        <br />
+        <span className="text-sm text-gray-600">{adminCheckMessage}</span>
+      </div>
+    );
   }
 
   return (
