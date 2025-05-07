@@ -190,26 +190,26 @@ export const createReview = (data, token) =>
   });
 
 // === VOUCHERS ===
-export const getAvailableVouchersAPI = (token) =>
+export const getAvailableVouchers = (token) =>
   API.get("/vouchers", {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-export const redeemVoucherAPI = (voucherId, userID, token) =>
-  API.post("/redeem-voucher", voucherId, userID, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const redeemVoucher = (data) => API.post("/redeem-voucher", data);
 
-export const applyVoucherAPI = (data, token) =>
+export const applyVoucher = (data, token) =>
   API.post("/apply-voucher", data, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
+export const getRedeemedVouchers = (token) =>
+  API.get("/redeemed", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
-  // === USER ADMIN ===
+// === USER ADMIN ===
 export const getAllUsers = () => API.get("/user-all");
 
-export const updateUser = (id, data) =>
-  API.put(`/update-profile/${id}`, data);
+export const updateUser = (id, data) => API.put(`/update-profile/${id}`, data);
 
 export const deleteUser = (id) => API.delete(`/delete-user/${id}`);
