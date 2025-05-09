@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import CholimexLayout from "../Layout/CholimexLayout";
-import { getAllOrders, getOrderById, getProductById } from "../../api/api";
+import { getAllOrders, getOrderByIdUser, getProductById } from "../../api/api";
 import { toast } from "react-toastify";
 
 const PaymentHistory = () => {
@@ -75,7 +75,6 @@ const PaymentHistory = () => {
 
       setOrders(enrichedOrders);
 
-      // Nếu có orderId từ query, tự động mở chi tiết đơn hàng
       const orderIdFromQuery = searchParams.get("orderId");
       if (orderIdFromQuery) {
         const orderToView = enrichedOrders.find(
@@ -98,7 +97,7 @@ const PaymentHistory = () => {
 
   const viewOrderDetails = async (order) => {
     try {
-      const response = await getOrderById(token, order.OrderID);
+      const response = await getOrderByIdUser(token, order.OrderID);
       const orderInfo = response.data;
 
       const detailsWithProductInfo = await Promise.all(

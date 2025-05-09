@@ -8,8 +8,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-// eslint-disable-next-line no-unused-vars
-import { motion } from "framer-motion"; // Import motion for animations
+import { motion } from "framer-motion"; 
 import {
   ShoppingCartIcon,
   CurrencyDollarIcon,
@@ -82,7 +81,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-6 bg-gradient-to-b from-gray-250 to-gray-300 min-h-screen">
+    <div className="p-6 bg-gradient-to-b  min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">
           📊 Thống kê tổng quan
@@ -179,19 +178,19 @@ const Dashboard = () => {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="bg-white p-6 rounded-xl shadow-lg"
+        className="bg-gray p-6 rounded-xl shadow-lg"
       >
         <h2 className="text-xl font-semibold text-gray-800 mb-4">
           📈 Doanh thu và số lượng theo sản phẩm
         </h2>
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" height={500}>
           <BarChart
             data={productData}
             margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
           >
             <XAxis
               dataKey="ProductName"
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 10 }}
               angle={-45}
               textAnchor="end"
               interval={0}
