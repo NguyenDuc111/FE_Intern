@@ -12,9 +12,6 @@ import {
   UserGroupIcon,
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
-  ChatBubbleLeftIcon,
-  GiftIcon,
-  TicketIcon,
 } from "@heroicons/react/24/solid";
 
 export default function AdminLayout() {
@@ -205,8 +202,8 @@ export default function AdminLayout() {
                   : "px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-white hover:text-red-600 transition-colors duration-200"
               }
             >
-              <ChatBubbleLeftIcon className="h-5 w-5" />
-              Bình Luận
+              <UserGroupIcon className="h-5 w-5" />
+              Comment
             </NavLink>
           </motion.div>
           <motion.div whileHover="hover" whileTap="tap">
@@ -218,7 +215,7 @@ export default function AdminLayout() {
                   : "px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-white hover:text-red-600 transition-colors duration-200"
               }
             >
-              <GiftIcon className="h-5 w-5" />
+              <UserGroupIcon className="h-5 w-5" />
               Khuyến Mãi
             </NavLink>
           </motion.div>
@@ -231,7 +228,7 @@ export default function AdminLayout() {
                   : "px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-white hover:text-red-600 transition-colors duration-200"
               }
             >
-              <TicketIcon className="h-5 w-5" />
+              <UserGroupIcon className="h-5 w-5" />
               Voucher
             </NavLink>
           </motion.div>

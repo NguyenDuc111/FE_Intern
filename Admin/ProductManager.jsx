@@ -185,7 +185,7 @@ export default function ProductPage() {
   };
 
   return (
-    <div className="p-6  min-h-screen">
+    <div className="p-6 bg-gradient-to-b from-gray-250 to-gray-300 min-h-screen">
       <h1 className="text-3xl font-bold mb-6 text-gray-800 bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
         📦 Quản lý Sản phẩm
       </h1>

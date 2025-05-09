@@ -115,6 +115,20 @@ export const getLoyaltyPointsAPI = (token) =>
   API.get("/point", {
     headers: { Authorization: `Bearer ${token}` },
   });
+  export const getUserPointsByAdmin = (token, userId) =>
+    API.get(`/point/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    // === LOYALTY POINTS ADMIN ===
+export const updateLoyaltyPoint = (id, data, token) =>
+  API.put(`/point-edit/${id}`, data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const deleteLoyaltyPoint = (id, token) =>
+  API.delete(`/point-del/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
 // === USER PROFILE ===
 export const getUserProfile = (userId, token) =>
@@ -215,3 +229,31 @@ export const updateUser = (id, data) => API.put(`/update-profile/${id}`, data);
 export const deleteUser = (id) => API.delete(`/delete-user/${id}`);
 
 export const getRevenueStatistics = () => API.get("/static");
+
+
+// === VOUCHER ADMIN ===
+export const getAllVouchers = (token) =>
+  API.get("/vouchers", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const createVoucher = (data, token) =>
+  API.post("/voucher-add", data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const updateVoucher = (id, data, token) =>
+  API.put(`/voucher-update/${id}`, data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const deleteVoucher = (id, token) =>
+  API.delete(`/voucher-del/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+// === REVIEW ADMIN ===
+export const getAllReviews = () => API.get("/review-all");
+
+export const updateReview = (id, data) => API.put(`/review-update/${id}`, data);
+
+export const deleteReview = (id) => API.delete(`/review-delete/${id}`);
