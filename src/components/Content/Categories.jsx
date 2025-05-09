@@ -3,13 +3,18 @@ import CholimexLayout from "../Layout/CholimexLayout";
 import ProductCard from "./ProductCard";
 import FilterProduct from "./FilterProduct";
 import { getAllCategories } from "../../api/api";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { motion } from "framer-motion";
 
 function Categories() {
   const [open, setOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [sortType, setSortType] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
   const menuRef = useRef();
+  const inputRef = useRef();
 
   useEffect(() => {
     getAllCategories()
@@ -43,9 +48,10 @@ function Categories() {
           </div>
         </div>
 
-        {/* === DANH MỤC DROPDOWN === */}
+        {/* === DANH MỤC DROPDOWN & Ô TÌM KIẾM === */}
         <div className="sticky top-20 z-30 bg-white/95 backdrop-blur-sm py-4 shadow-md mb-8 px-4 max-w-screen-xl mx-auto rounded-lg transition-all duration-300">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-4">
+            {/* Nút Danh mục sản phẩm */}
             <button
               onClick={() => setOpen(!open)}
               className="bg-[#dd3333] text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center gap-2"
@@ -66,6 +72,34 @@ function Categories() {
                 />
               </svg>
             </button>
+
+            {/* Ô tìm kiếm ở giữa */}
+            <div className="flex-1 max-w-md">
+              <motion.div
+                className="relative"
+                initial={{ width: "160px" }}
+                animate={{ width: isFocused || searchQuery ? "100%" : "160px" }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+              >
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => {
+                    if (!searchQuery) setIsFocused(false);
+                  }}
+                  placeholder="Tìm kiếm theo tên sản phẩm..."
+                  className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-white"
+                />
+                <MagnifyingGlassIcon
+                  className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"
+                />
+              </motion.div>
+            </div>
+
+            {/* Bộ lọc FilterProduct */}
             <div className="hidden md:block">
               <FilterProduct onFilterChange={setSortType} />
             </div>
@@ -134,6 +168,7 @@ function Categories() {
             <ProductCard
               selectedCategory={selectedCategory}
               sortType={sortType}
+              searchQuery={searchQuery}
             />
           </div>
         </div>

@@ -196,7 +196,7 @@ const UserManager = () => {
 
   return (
     <div className="p-6 bg-gradient-to-b from-gray-250 to-gray-300 min-h-screen">
-      <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+      <h2 className="text-3xl font-bold mb-6 text-red-600">
         👥 Quản lý Người dùng & Quản trị viên
       </h2>
 

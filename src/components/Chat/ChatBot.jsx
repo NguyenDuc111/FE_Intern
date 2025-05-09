@@ -191,15 +191,16 @@ const ChatBot = () => {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 font-sans">
-      {!isOpen && (
-        <button
-          onClick={toggleChat}
-          className="group bg-[#dd3333] text-white p-3 rounded-full shadow-xl hover:bg-[#b52828] transition-all duration-300 flex items-center justify-center transform hover:scale-110"
-        >
-          <img src={logo} alt="Cholimex Chat" className="w-10 h-10 mr-2" />
-          <HelpCircle size={24} className="group-hover:animate-pulse" />
-        </button>
-      )}
+     <div className="fixed bottom-13 right-6 transform -translate-y-1/2">
+  {!isOpen && (
+    <button
+      onClick={toggleChat}
+      className="group bg-[#dd3333] text-white p-3 rounded-full shadow-xl hover:bg-[#b52828] transition-all duration-300 flex items-center justify-center transform hover:scale-110 w-16 h-16"
+    >
+      <img src={logo} alt="Cholimex Chat" className="w-10 h-10 " />
+    </button>
+  )}
+</div>
 
       {isOpen && (
         <div className="bg-white w-full max-w-[400px] sm:max-w-[450px] h-[650px] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200">

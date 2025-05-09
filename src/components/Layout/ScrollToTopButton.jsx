@@ -27,7 +27,7 @@ function ScrollToTopButton() {
   return (
     <button
       onClick={scrollToTop}
-      className={`fixed bottom-6 right-6 z-50 p-3 rounded-full bg-[#dd3333] text-white shadow-xl transition-all duration-300 ease-in-out hover:bg-red-600 hover:scale-110 ${
+      className={`fixed bottom-5 right-6 z-50 p-3 rounded-full bg-[#dd3333] text-white shadow-xl transition-all duration-300 ease-in-out hover:bg-red-600 hover:scale-110 ${
         isVisible
           ? "opacity-100 scale-100 pointer-events-auto"
           : "opacity-0 scale-0 pointer-events-none"

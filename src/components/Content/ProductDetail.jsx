@@ -199,7 +199,7 @@ function ProductDetail() {
                 product.ImageURL || "https://source.unsplash.com/500x500?food"
               }
               alt={product.ProductName}
-              className="w-full rounded-lg object-cover"
+              className="w-full rounded-lg object-cover "
             />
           </div>
 

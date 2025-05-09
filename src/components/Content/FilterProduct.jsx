@@ -1,6 +1,6 @@
 function FilterProduct({ onFilterChange }) {
   return (
-    <div className="flex items-center gap-4 mb-6">
+    <div className="flex items-center gap-4 mb-2 mt-3">
       <label className="font-medium">Sắp xếp:</label>
       <select
         onChange={(e) => onFilterChange(e.target.value)}

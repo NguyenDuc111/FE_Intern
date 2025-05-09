@@ -218,7 +218,7 @@ export default function OrderManager() {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-red-700 mb-6">Quản lý Đơn hàng</h1>
+      <h1 className="text-3xl font-bold mb-6 text-red-600">Quản lý Đơn hàng</h1>
 
       <div className="mb-4 flex flex-wrap gap-3 items-center">
         <label htmlFor="status-filter" className="font-medium">Lọc theo trạng thái:</label>
@@ -258,7 +258,7 @@ export default function OrderManager() {
               <th className="px-4 py-3 text-left font-semibold">Tổng tiền</th>
               <th className="px-4 py-3 text-left font-semibold">Địa chỉ</th>
               <th className="px-4 py-3 text-left font-semibold">Trạng thái</th>
-              <th className="px-4 py-3 text-center font-semibold">Hành động</th>
+              <th className="px-4 py-3 text-center font-semibold">View</th>
             </tr>
           </thead>
           <tbody>

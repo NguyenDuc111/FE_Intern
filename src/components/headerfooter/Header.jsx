@@ -6,7 +6,6 @@ import {
   register,
   forgotPassword,
   getCartAPI,
-  getNotifications,
 } from "../../api/api.js";
 import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -30,7 +29,6 @@ function Header() {
     address: "",
   });
   const [cartItems, setCartItems] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const totalQty = cartItems.length;
 
   const modalRef = useRef();
@@ -51,18 +49,6 @@ function Header() {
     }
   };
 
-  const fetchNotificationsCount = async () => {
-    if (user && token) {
-      try {
-        const response = await getNotifications(token);
-        const unread = response.data.filter((noti) => !noti.IsRead).length;
-        setUnreadCount(unread);
-      } catch (error) {
-        console.error("Lỗi khi lấy thông báo:", error);
-      }
-    }
-  };
-
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser && storedUser !== "undefined") {
@@ -76,7 +62,6 @@ function Header() {
 
   useEffect(() => {
     reloadCart();
-    fetchNotificationsCount();
   }, [user, token]);
 
   useEffect(() => {
@@ -95,7 +80,6 @@ function Header() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       setUser(null);
-      setUnreadCount(0);
       setDropdownOpen(false);
       toast.update(id, {
         render: "Đã đăng xuất thành công.",
@@ -208,6 +192,10 @@ function Header() {
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
+
+  // Kiểm tra vai trò admin từ token
+  const isAdmin = user && token ? jwtDecode(token).RoleName === "admin" : false;
+
   return (
     <>
       <ToastContainer
@@ -258,6 +246,7 @@ function Header() {
               { path: "/Categories", label: "Sản phẩm" },
               { path: "/contact", label: "Thư viện ẩm thực" },
               { path: "/contact", label: "40 năm" },
+              ...(isAdmin ? [{ path: "/admin", label: "Admin Panel" }] : []),
             ].map(({ path, label }, idx) => (
               <Link
                 key={idx}
@@ -328,18 +317,12 @@ function Header() {
               <div className="flex items-center gap-4">
                 <div className="relative cursor-pointer -translate-x-2">
                   <Notification />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {unreadCount}
-                    </span>
-                  )}
                 </div>
 
                 <Link
                   to="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    
                     setTimeout(() => navigate("/cart"), 100);
                   }}
                   className="relative text-black hover:text-[#dd3333]"

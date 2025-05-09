@@ -12,7 +12,7 @@ import { AiFillStar, AiFillHeart } from "react-icons/ai";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-function ProductCard({ selectedCategory, sortType }) {
+function ProductCard({ selectedCategory, sortType, searchQuery }) {
   const [products, setProducts] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,6 +27,7 @@ function ProductCard({ selectedCategory, sortType }) {
       const res = await getAllProducts();
       let data = res.data;
 
+      // Lọc theo danh mục
       if (selectedCategory) {
         data = data.filter((product) =>
           product.Categories?.some(
@@ -35,6 +36,14 @@ function ProductCard({ selectedCategory, sortType }) {
         );
       }
 
+      // Lọc theo từ khóa tìm kiếm
+      if (searchQuery) {
+        data = data.filter((product) =>
+          product.ProductName.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
+
+      // Sắp xếp sản phẩm
       if (sortType === "name-asc") {
         data.sort((a, b) => a.ProductName.localeCompare(b.ProductName));
       } else if (sortType === "name-desc") {
@@ -65,7 +74,7 @@ function ProductCard({ selectedCategory, sortType }) {
 
   useEffect(() => {
     loadProducts();
-  }, [selectedCategory, sortType]);
+  }, [selectedCategory, sortType, searchQuery]);
 
   useEffect(() => {
     loadWishlist();
@@ -147,101 +156,107 @@ function ProductCard({ selectedCategory, sortType }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        {currentProducts.map((p) => {
-          const hasDiscount = p.OldPrice && p.OldPrice > p.Price;
-          const isFavorite = wishlist.some(
-            (w) => w.Product.ProductID === p.ProductID
-          );
+        {currentProducts.length === 0 ? (
+          <strong className="text-center text-white col-span-full text-3xl">
+            Không tìm thấy sản phẩm nào.
+          </strong>
+        ) : (
+          currentProducts.map((p) => {
+            const hasDiscount = p.OldPrice && p.OldPrice > p.Price;
+            const isFavorite = wishlist.some(
+              (w) => w.Product.ProductID === p.ProductID
+            );
 
-          return (
-            <div
-              key={p.ProductID}
-              onClick={() => navigate(`/product/${p.ProductID}`)}
-              className="bg-white border border-gray-100 rounded-xl p-4 shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 transform group cursor-pointer overflow-hidden flex flex-col min-h-[360px]"
-            >
-              <div className="relative w-full h-48">
-                <img
-                  src={p.ImageURL || "/default.jpg"}
-                  alt={p.ProductName}
-                  className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
-                />
-                {hasDiscount && (
-                  <span className="absolute top-2 right-2 bg-red-600 text-white text-sm font-semibold px-3 py-1 rounded-full shadow-md animate-pulse-once">
-                    -{Math.round(((p.OldPrice - p.Price) / p.OldPrice) * 100)}%
-                  </span>
-                )}
-                {p.Rating && (
-                  <div className="absolute bottom-2 left-2 flex items-center bg-white/90 px-2 py-1 rounded-lg shadow-sm">
-                    {[...Array(5)].map((_, i) => (
-                      <AiFillStar
-                        key={i}
-                        className={
-                          i < p.Rating
-                            ? "text-yellow-500"
-                            : "text-gray-300"
-                        }
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
+            return (
+              <div
+                key={p.ProductID}
+                onClick={() => navigate(`/product/${p.ProductID}`)}
+                className="bg-white border border-gray-100 rounded-xl p-4 shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 transform group cursor-pointer overflow-hidden flex flex-col min-h-[360px]"
+              >
+                <div className="relative w-full h-48">
+                  <img
+                    src={p.ImageURL || "/default.jpg"}
+                    alt={p.ProductName}
+                    className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
+                  />
+                  {hasDiscount && (
+                    <span className="absolute top-2 right-2 bg-red-600 text-white text-sm font-semibold px-3 py-1 rounded-full shadow-md animate-pulse-once">
+                      -{Math.round(((p.OldPrice - p.Price) / p.OldPrice) * 100)}%
+                    </span>
+                  )}
+                  {p.Rating && (
+                    <div className="absolute bottom-2 left-2 flex items-center bg-white/90 px-2 py-1 rounded-lg shadow-sm">
+                      {[...Array(5)].map((_, i) => (
+                        <AiFillStar
+                          key={i}
+                          className={
+                            i < p.Rating
+                              ? "text-yellow-500"
+                              : "text-gray-300"
+                          }
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-              <h3 className="text-base font-semibold text-gray-900 mt-3 line-clamp-2 hover:text-[#dd3333] transition-colors min-h-[48px]">
-                {p.ProductName}
-              </h3>
+                <h3 className="text-base font-semibold text-gray-900 mt-3 line-clamp-2 hover:text-[#dd3333] transition-colors min-h-[48px]">
+                  {p.ProductName}
+                </h3>
 
-              <div className="flex items-center justify-between mt-2 min-h-[24px]">
-                <span className="text-lg font-bold text-[#dd3333]">
-                  {new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }).format(p.Price)}
-                </span>
-                {hasDiscount && (
-                  <span className="text-gray-500 line-through text-sm">
+                <div className="flex items-center justify-between mt-2 min-h-[24px]">
+                  <span className="text-lg font-bold text-[#dd3333]">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
-                    }).format(p.OldPrice)}
+                    }).format(p.Price)}
                   </span>
-                )}
-              </div>
-
-              <div className="flex justify-end items-center mt-auto pt-4 gap-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleWishlist(p);
-                  }}
-                  title="Yêu thích"
-                  className={`p-2 rounded-full border transition-all duration-300 hover:bg-red-100 hover:scale-110 ${
-                    isFavorite
-                      ? "bg-red-50 border-red-300 text-[#dd3333]"
-                      : "border-gray-200"
-                  }`}
-                >
-                  {isFavorite ? (
-                    <AiFillHeart size={20} className="text-[#dd3333]" />
-                  ) : (
-                    <FiHeart size={20} />
+                  {hasDiscount && (
+                    <span className="text-gray-500 line-through text-sm">
+                      {new Intl.NumberFormat("vi-VN", {
+                        style: "currency",
+                        currency: "VND",
+                      }).format(p.OldPrice)}
+                    </span>
                   )}
-                </button>
+                </div>
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleAddToCart(p);
-                  }}
-                  title="Thêm vào giỏ"
-                  className="bg-[#dd3333] text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-700 hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
-                >
-                  <FiShoppingCart size={18} />
-                  <span>Thêm</span>
-                </button>
+                <div className="flex justify-end items-center mt-auto pt-4 gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleWishlist(p);
+                    }}
+                    title="Yêu thích"
+                    className={`p-2 rounded-full border transition-all duration-300 hover:bg-red-100 hover:scale-110 ${
+                      isFavorite
+                        ? "bg-red-50 border-red-300 text-[#dd3333]"
+                        : "border-gray-200"
+                    }`}
+                  >
+                    {isFavorite ? (
+                      <AiFillHeart size={20} className="text-[#dd3333]" />
+                    ) : (
+                      <FiHeart size={20} />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(p);
+                    }}
+                    title="Thêm vào giỏ"
+                    className="bg-[#dd3333] text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-700 hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+                  >
+                    <FiShoppingCart size={18} />
+                    <span>Thêm</span>
+                  </button>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
 
       {totalPages > 1 && (

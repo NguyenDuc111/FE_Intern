@@ -33,9 +33,12 @@ function Notification() {
     }
   };
 
+  // Gọi fetchNotifications khi component mount và polling mỗi 10 giây
   useEffect(() => {
-    fetchNotifications();
-  });
+    fetchNotifications(); // Gọi ngay khi mount
+    const interval = setInterval(fetchNotifications, 10000); // Polling mỗi 10 giây
+    return () => clearInterval(interval); // Dọn dẹp interval khi component unmount
+  }, [token, userId]); // Dependency để đảm bảo gọi lại khi token hoặc userId thay đổi
 
   const handleMarkAsRead = async (notificationId) => {
     if (token) {
@@ -82,7 +85,7 @@ function Notification() {
       >
         <Bell size={26} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-2 h-5 flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
             {unreadCount}
           </span>
         )}
@@ -107,9 +110,8 @@ function Notification() {
                     <span className="w-2 h-2 bg-red-500 rounded-full mt-2"></span>
                   )}
                   <div>
-                    <div className="text-gray-700">
-                      {noti.Message || noti.Title}
-                    </div>
+                    <div className="text-gray-700 font-medium">{noti.Title}</div>
+                    <div className="text-gray-600">{noti.Message}</div>
                   </div>
                 </div>
               ))

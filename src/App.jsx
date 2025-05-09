@@ -27,6 +27,8 @@ import ScrollToTop from "./components/Layout/ScrollToTop";
 import PromotionManager from "./components/Admin/PromotionManager";
 import ReviewManager from "./components/Admin/ReviewManager";
 import VoucherManager from "./components/Admin/VoucherManager";
+import NotificationManager from "./components/Admin/NotificationManager";
+
 function App() {
   return (
     <>
@@ -75,6 +77,7 @@ function App() {
             <Route path="khuyen-mai" element={<PromotionManager />} />
             <Route path="quan-ly-binh-luan" element={<ReviewManager />} />
             <Route path="quan-ly-voucher" element={<VoucherManager />} />
+            <Route path="quan-ly-thong-bao" element={<NotificationManager />} />
           </Route>
         </Routes>
         <ChatBot />

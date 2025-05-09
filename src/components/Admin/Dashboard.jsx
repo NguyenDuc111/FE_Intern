@@ -84,7 +84,7 @@ const Dashboard = () => {
   return (
     <div className="p-6 bg-gradient-to-b from-gray-250 to-gray-300 min-h-screen">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">
+        <h1 className="text-3xl font-bold mb-6 text-red-600">
           📊 Thống kê tổng quan
         </h1>
         <button
@@ -181,7 +181,7 @@ const Dashboard = () => {
         transition={{ duration: 0.5 }}
         className="bg-white p-6 rounded-xl shadow-lg"
       >
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        <h2 className="text-2xl font-bold mb-6 text-red-600">
           📈 Doanh thu và số lượng theo sản phẩm
         </h2>
         <ResponsiveContainer width="100%" height={400}>

@@ -101,9 +101,9 @@ export default function VoucherManager() {
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold text-red-600 mb-6 flex items-center gap-2">
-        <Gift className="w-6 h-6" />
-        Quản lý Voucher
+      <h2 className="text-3xl font-bold mb-6 text-red-600 ">
+       
+      🎟️ Quản lý Voucher
       </h2>
 
       {/* Form */}
