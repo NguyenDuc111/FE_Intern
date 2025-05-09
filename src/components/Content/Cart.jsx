@@ -11,6 +11,7 @@ import {
   getUserProfile,
   applyVoucher,
   getRedeemedVouchers,
+  getNotifications,
 } from "../../api/api";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
@@ -59,7 +60,8 @@ const Cart = () => {
       setVoucherDiscount(null);
       setSelectedVoucher(null);
       loadCart();
-      loadRedeemedVouchers(); // Làm mới danh sách voucher sau khi thanh toán
+      loadRedeemedVouchers();
+      loadNotifications(); // Load notifications after successful payment
     } else if (status === "failed" && orderId) {
       toast.error(
         message
@@ -147,6 +149,17 @@ const Cart = () => {
     }
   };
 
+  const loadNotifications = async () => {
+    if (!token || !userId) return;
+    try {
+      const response = await getNotifications(token);
+      getNotifications(response.data || []);
+    } catch (err) {
+      console.error("Lỗi khi lấy thông báo:", err);
+      toast.error("Không thể tải thông báo.");
+    }
+  };
+
   useEffect(() => {
     loadCart();
     loadLoyaltyPoints();
@@ -211,7 +224,7 @@ const Cart = () => {
           finalAmount: response.data.finalAmount,
         });
         setSelectedVoucher(selected);
-        loadRedeemedVouchers(); // Làm mới danh sách voucher sau khi áp dụng
+        loadRedeemedVouchers();
         toast.success(response.data.message);
       } else {
         throw new Error("Voucher không hợp lệ, đã sử dụng hoặc hết hạn");
@@ -235,7 +248,6 @@ const Cart = () => {
       return;
     }
 
-    // Chỉ cho phép chọn một voucher tại một thời điểm
     if (selectedVoucher) {
       setSelectedVoucher(null);
       setVoucherCode("");
@@ -254,8 +266,8 @@ const Cart = () => {
       });
       setSelectedVoucher(voucher);
       setVoucherCode(voucher.voucherCode);
-      loadRedeemedVouchers(); // Làm mới danh sách voucher sau khi chọn
-      setShowVoucherModal(false); // Đóng modal sau khi chọn
+      loadRedeemedVouchers();
+      setShowVoucherModal(false);
       toast.success(`Đã chọn voucher ${voucher.name}`);
     } catch (err) {
       console.error("Lỗi khi chọn voucher:", err);
@@ -351,15 +363,20 @@ const Cart = () => {
       );
       console.log("Order creation response:", orderResponse.data);
 
-      const createdOrder = orderResponse.data;
+      const createdOrder = orderResponse.data.order;
+
+      const paymentResponse = await processPaymentAPI(
+        {
+          orderId: createdOrder.OrderID,
+          paymentMethod: paymentMethod.toLowerCase(),
+        },
+        token
+      );
+      console.log("Payment response:", paymentResponse.data);
 
       if (paymentMethod === "cod") {
-        console.log(
-          "Processing COD payment for OrderID:",
-          createdOrder.order.OrderID
-        );
         toast.success(
-          `Đặt hàng thành công! Thanh toán khi nhận hàng. Đơn hàng #${createdOrder.order.OrderID}.`
+          `Đặt hàng thành công! Thanh toán khi nhận hàng. Đơn hàng #${createdOrder.OrderID}.`
         );
         setShowPaymentModal(false);
         setOrderDetails(null);
@@ -367,27 +384,13 @@ const Cart = () => {
         setVoucherDiscount(null);
         setSelectedVoucher(null);
         loadCart();
-        loadRedeemedVouchers(); // Làm mới danh sách voucher sau khi thanh toán
-        navigate(`/payment/success?orderId=${createdOrder.order.OrderID}`);
+        loadRedeemedVouchers();
+        loadNotifications(); // Load notifications after successful COD payment
+        navigate(`/payment/success?orderId=${createdOrder.OrderID}`);
+      } else if (paymentResponse.data.payUrl) {
+        window.location.href = paymentResponse.data.payUrl;
       } else {
-        console.log(
-          "Processing VNPay payment for OrderID:",
-          createdOrder.order.OrderID
-        );
-        const paymentResponse = await processPaymentAPI(
-          {
-            orderId: createdOrder.order.OrderID,
-            paymentMethod: paymentMethod.toLowerCase(),
-          },
-          token
-        );
-        console.log("Payment response:", paymentResponse.data);
-
-        if (paymentResponse.data.payUrl) {
-          window.location.href = paymentResponse.data.payUrl;
-        } else {
-          toast.error("Không thể tạo URL thanh toán");
-        }
+        toast.error("Không thể tạo URL thanh toán");
       }
     } catch (err) {
       console.error("Error in handlePayment:", err);
@@ -683,7 +686,9 @@ const Cart = () => {
                   )}
                   {orderDetails.pointsUsed > 0 && (
                     <p>
-                      <span className="font-medium">Điểm tích lũy sử dụng:</span>{" "}
+                      <span className="font-medium">
+                        Điểm tích lũy sử dụng:
+                      </span>{" "}
                       {orderDetails.pointsUsed} điểm
                     </p>
                   )}

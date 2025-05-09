@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, HelpCircle, ChevronRight, Loader2 } from "lucide-react";
+import { toast } from "react-toastify";
 import logo from "../../assets/image/logo-english.jpg"; // Replace with your Cholimex logo path
 import axios from "axios";
 
@@ -17,68 +18,62 @@ const ChatBot = () => {
 
   const predefinedQuestions = [
     {
-      id: "product_safety",
-      text: "Sản phẩm có an toàn và chất lượng không?",
+      id: "product_info",
+      text: "Sản phẩm Cholimex có gì đặc biệt?",
       subQuestions: [
-        { id: "product_ingredients", text: "Thành phần sản phẩm là gì?" },
+        { id: "product_ingredients", text: "Thành phần của sản phẩm là gì?" },
         {
-          id: "product_certification",
-          text: "Có chứng nhận an toàn thực phẩm không?",
+          id: "product_quality",
+          text: "Sản phẩm có đạt chuẩn chất lượng không?",
         },
       ],
     },
     {
-      id: "product_price",
-      text: "Giá thành sản phẩm?",
+      id: "order_process",
+      text: "Làm thế nào để đặt hàng trên website?",
       subQuestions: [
+        { id: "add_to_cart", text: "Cách thêm sản phẩm vào giỏ hàng?" },
+        { id: "checkout_steps", text: "Quy trình thanh toán như thế nào?" },
+      ],
+    },
+    {
+      id: "payment_options",
+      text: "Phương thức thanh toán nào được chấp nhận?",
+      subQuestions: [
+        { id: "vnpay_payment", text: "Thanh toán qua VNPay có an toàn không?" },
         {
-          id: "max_discount_amount",
-          text: "Giảm giá tối đa được bao nhiêu %?",
-        },
-        {
-          id: "special_offers",
-          text: "Có ưu đãi đặc biệt nào cho sản phẩm không?",
+          id: "cod_payment",
+          text: "Có hỗ trợ thanh toán khi nhận hàng không?",
         },
       ],
     },
     {
-      id: "promo_points",
-      text: "Mã khuyến mãi và điểm tích lũy?",
+      id: "delivery_info",
+      text: "Giao hàng mất bao lâu và phí bao nhiêu?",
       subQuestions: [
-        {
-          id: "active_promo_codes",
-          text: "Có mã khuyến mãi nào đang áp dụng không?",
-        },
-        { id: "points_usage", text: "Làm sao để tích lũy và sử dụng điểm?" },
+        { id: "delivery_time", text: "Thời gian giao hàng là bao lâu?" },
+        { id: "delivery_fees", text: "Phí giao hàng được tính thế nào?" },
       ],
     },
     {
-      id: "delivery",
-      text: "Giao hàng mất bao lâu?",
+      id: "voucher_points",
+      text: "Cách sử dụng voucher và điểm tích lũy?",
       subQuestions: [
-        { id: "delivery_fees", text: "Phí giao hàng là bao nhiêu?" },
-        { id: "delivery_tracking", text: "Làm sao để theo dõi đơn hàng?" },
-      ],
-    },
-    {
-      id: "storage",
-      text: "Làm sao để bảo quản sản phẩm?",
-      subQuestions: [
-        { id: "shelf_life", text: "Hạn sử dụng của sản phẩm là bao lâu?" },
-        { id: "storage_instructions", text: "Hướng dẫn bảo quản chi tiết?" },
+        { id: "redeem_voucher", text: "Làm sao để đổi voucher bằng điểm?" },
+        { id: "apply_voucher", text: "Cách áp dụng voucher khi thanh toán?" },
       ],
     },
     {
       id: "customer_support",
-      text: "Liên hệ hỗ trợ khách hàng như thế nào?",
+      text: "Làm thế nào để liên hệ hỗ trợ khách hàng?",
       subQuestions: [
-        { id: "support_contact", text: "Số hotline hoặc email hỗ trợ?" },
+        { id: "support_contact", text: "Số hotline hoặc email hỗ trợ là gì?" },
         { id: "support_hours", text: "Thời gian hỗ trợ là khi nào?" },
       ],
     },
     {
       id: "return_policy",
-      text: "Chính sách đổi trả ra sao?",
+      text: "Chính sách đổi trả sản phẩm ra sao?",
       subQuestions: [
         { id: "return_conditions", text: "Điều kiện để đổi trả sản phẩm?" },
         { id: "return_process", text: "Quy trình đổi trả như thế nào?" },
@@ -87,7 +82,6 @@ const ChatBot = () => {
   ];
 
   const toggleChat = () => {
-    console.log("Toggling chat, current isOpen:", isOpen);
     setIsOpen(!isOpen);
     if (!isOpen) {
       setMessages([
@@ -106,12 +100,6 @@ const ChatBot = () => {
     isSubQuestion = false,
     event
   ) => {
-    console.log(
-      "Handling question click:",
-      questionId,
-      "isSubQuestion:",
-      isSubQuestion
-    );
     event.stopPropagation();
     event.preventDefault();
 
@@ -122,7 +110,7 @@ const ChatBot = () => {
       : predefinedQuestions.find((q) => q.id === questionId);
 
     if (!question) {
-      console.error("Question not found:", questionId);
+      toast.error("Câu hỏi không hợp lệ. Vui lòng thử lại.");
       setMessages((prev) => [
         ...prev,
         {
@@ -136,14 +124,12 @@ const ChatBot = () => {
 
     setIsLoading(true);
     try {
-      console.log("Sending API request for:", questionId);
       const response = await API.post("/webhook", {
         queryResult: { queryText: questionId },
       });
-      console.log("API response:", response.data);
 
       if (!response.data.fulfillmentText && !response.data.products) {
-        throw new Error("No fulfillment text or products received");
+        throw new Error("Không nhận được phản hồi hợp lệ từ server.");
       }
 
       const botMessage = {
@@ -153,26 +139,27 @@ const ChatBot = () => {
         timestamp: new Date(),
       };
 
-      setMessages((prev) => {
-        console.log("Updating messages with:", question.text, botMessage);
-        return [
-          ...prev,
-          { text: question.text, sender: "user", timestamp: new Date() },
-          botMessage,
-        ];
-      });
+      setMessages((prev) => [
+        ...prev,
+        { text: question.text, sender: "user", timestamp: new Date() },
+        botMessage,
+      ]);
 
       if (!isSubQuestion) {
         setSelectedQuestion(question);
       }
     } catch (error) {
-      console.error("Error sending question:", error.message, error.stack);
-      const errorMessage = {
-        text: "Có lỗi xảy ra khi xử lý câu hỏi. Vui lòng thử lại sau.",
-        sender: "bot",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      toast.error(error.message || "Có lỗi xảy ra khi xử lý câu hỏi.");
+      setMessages((prev) => [
+        ...prev,
+        {
+          text:
+            error.message ||
+            "Có lỗi xảy ra khi xử lý câu hỏi. Vui lòng thử lại sau.",
+          sender: "bot",
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -180,14 +167,9 @@ const ChatBot = () => {
 
   useEffect(() => {
     if (chatRef.current) {
-      console.log("Scrolling chat to bottom");
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
-    } else {
-      console.log("chatRef is null");
     }
   }, [messages]);
-
-  console.log("Rendering ChatBot, isOpen:", isOpen, "messages:", messages);
 
   return (
     <div className="fixed bottom-6 right-6 z-50 font-sans">
@@ -233,7 +215,11 @@ const ChatBot = () => {
                 } shadow-sm`}
               >
                 {msg.text && (
-                  <p className="text-sm leading-relaxed text-gray-800">
+                  <p
+                    className={`text-sm leading-relaxed ${
+                      msg.sender === "user" ? "text-white" : "text-gray-800"
+                    }`}
+                  >
                     {msg.text}
                   </p>
                 )}
@@ -263,7 +249,7 @@ const ChatBot = () => {
                           )}
                           {product.Price && (
                             <p className="text-xs text-gray-600">
-                              Giá: {product.Price} VND
+                              Giá: {product.Price.toLocaleString()} VND
                             </p>
                           )}
                         </div>
@@ -320,10 +306,7 @@ const ChatBot = () => {
                     </button>
                   ))}
                   <button
-                    onClick={() => {
-                      console.log("Returning to main questions");
-                      setSelectedQuestion(null);
-                    }}
+                    onClick={() => setSelectedQuestion(null)}
                     className="mt-2 px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-all duration-200 text-sm font-medium shadow-sm"
                   >
                     Quay lại

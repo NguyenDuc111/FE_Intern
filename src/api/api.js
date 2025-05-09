@@ -98,7 +98,10 @@ export const getOrderById = (token, Id) =>
   API.get(`/order/${Id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-
+export const getOrderByIdUser = (token, Id) =>
+  API.get(`/order-user/${Id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 // === ORDER ADMIN ===
 export const deleteOrder = (id) =>
   API.delete(`/order-del/${id}`, {
@@ -109,17 +112,20 @@ export const updateOrder = (id, data) =>
   API.put(`/order-update/${id}`, data, {
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
   });
-
+export const getOrdersByUserId = (userId, token) =>
+  API.get(`/orders-all/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 // === LOYALTY POINTS ===
 export const getLoyaltyPointsAPI = (token) =>
   API.get("/point", {
     headers: { Authorization: `Bearer ${token}` },
   });
-  export const getUserPointsByAdmin = (token, userId) =>
-    API.get(`/point/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    // === LOYALTY POINTS ADMIN ===
+export const getUserPointsByAdmin = (token, userId) =>
+  API.get(`/point/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+// === LOYALTY POINTS ADMIN ===
 export const updateLoyaltyPoint = (id, data, token) =>
   API.put(`/point-edit/${id}`, data, {
     headers: { Authorization: `Bearer ${token}` },
@@ -230,27 +236,27 @@ export const deleteUser = (id) => API.delete(`/delete-user/${id}`);
 
 export const getRevenueStatistics = () => API.get("/static");
 
-
 // === VOUCHER ADMIN ===
 export const getAllVouchers = (token) =>
   API.get("/vouchers", {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-export const createVoucher = (data, token) =>
-  API.post("/voucher-add", data, {
+export const addVoucher = (data, token) =>
+  API.post("/vouchers", data, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-export const updateVoucher = (id, data, token) =>
-  API.put(`/voucher-update/${id}`, data, {
+export const editVoucher = (voucherId, data, token) =>
+  API.put(`/vouchers/${voucherId}`, data, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-export const deleteVoucher = (id, token) =>
-  API.delete(`/voucher-del/${id}`, {
+export const deleteVoucher = (voucherId, token) =>
+  API.delete(`/vouchers/${voucherId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+
 // === REVIEW ADMIN ===
 export const getAllReviews = () => API.get("/review-all");
 
