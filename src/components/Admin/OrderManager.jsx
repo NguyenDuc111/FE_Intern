@@ -194,7 +194,7 @@ const OrderManager = () => {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-       <h1 className="text-3xl font-bold mb-6 text-gray-800">Quản lý đơn hàng</h1>
+       <h1 className="text-3xl font-bold mb-6 text-red-600">Quản lý đơn hàng</h1>
 
       {/* Table */}
       <div className="overflow-x-auto bg-white shadow-md rounded-lg">
