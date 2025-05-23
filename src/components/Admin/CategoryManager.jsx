@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 
 const API = axios.create({
-  baseURL: "http://localhost:8080/",
+  baseURL: "http://tmdt1.cholimexfood.com.vn/api/",
 });
 
 API.interceptors.request.use((config) => {
