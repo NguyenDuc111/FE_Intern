@@ -35,6 +35,7 @@ const Cart = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const isGuest = !token;
 
   let userId = null;
   if (token) {
@@ -91,9 +92,13 @@ const Cart = () => {
 
   const loadCart = async () => {
     if (!token) {
-      toast.error("Vui lòng đăng nhập để tiếp tục.");
+      // Với guest: thử lấy giỏ hàng từ localStorage hoặc để rỗng
+      const localCart = JSON.parse(localStorage.getItem("guest_cart")) || [];
+      setCartItems(localCart);
+      setTotalAmount(calculateTotal(localCart));
       return;
     }
+
     try {
       const res = await getCartAPI(token);
       const items = res.data.cartItems || [];
@@ -162,15 +167,29 @@ const Cart = () => {
 
   useEffect(() => {
     loadCart();
-    loadLoyaltyPoints();
-    loadUserInfo();
-    loadRedeemedVouchers();
+    if (!isGuest) {
+      loadLoyaltyPoints();
+      loadUserInfo();
+      loadRedeemedVouchers();
+    }
   }, []);
 
   const handleQuantityChange = async (cartId, quantity, maxStock) => {
     const newQty = parseInt(quantity);
     if (newQty < 1 || newQty > maxStock) return;
 
+    // Nếu là guest (không có token)
+    if (!token) {
+      const updatedItems = cartItems.map((item) =>
+        item.CartID === cartId ? { ...item, Quantity: newQty } : item
+      );
+      localStorage.setItem("guest_cart", JSON.stringify(updatedItems));
+      setCartItems(updatedItems);
+      setTotalAmount(calculateTotal(updatedItems));
+      return;
+    }
+
+    // Nếu là user đăng nhập
     try {
       await updateCartAPI(cartId, newQty, token);
       const updatedItems = cartItems.map((item) =>
@@ -185,6 +204,16 @@ const Cart = () => {
   };
 
   const handleRemoveItem = async (cartId) => {
+    // Guest
+    if (!token) {
+      const updatedItems = cartItems.filter((item) => item.CartID !== cartId);
+      localStorage.setItem("guest_cart", JSON.stringify(updatedItems));
+      setCartItems(updatedItems);
+      setTotalAmount(calculateTotal(updatedItems));
+      return;
+    }
+
+    // Logged in
     try {
       await removeCartItemAPI(Number(cartId), token);
       const updatedItems = cartItems.filter((item) => item.CartID !== cartId);
@@ -533,47 +562,51 @@ const Cart = () => {
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
                 <div className="w-full lg:w-1/2 space-y-6">
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-semibold text-[#333333]">
-                      Sử dụng điểm tích lũy (có sẵn: {totalPoints} điểm)
-                    </label>
-                    <input
-                      type="number"
-                      value={pointsUsed}
-                      onChange={handlePointsChange}
-                      className="border border-gray-300 px-4 py-2.5 rounded-lg text-sm focus:border-[#dd3333] focus:ring-[#dd3333] w-full"
-                      min={0}
-                      max={totalPoints}
-                      placeholder="Nhập số điểm muốn dùng"
-                    />
-                    <p className="text-xs text-gray-500">1 điểm = 1.000₫</p>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-semibold text-[#333333]">
-                      Mã voucher
-                    </label>
-                    <div className="flex gap-3">
+                  {!isGuest && (
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-semibold text-[#333333]">
+                        Sử dụng điểm tích lũy (có sẵn: {totalPoints} điểm)
+                      </label>
                       <input
-                        type="text"
-                        value={voucherCode}
-                        onChange={(e) => setVoucherCode(e.target.value)}
+                        type="number"
+                        value={pointsUsed}
+                        onChange={handlePointsChange}
                         className="border border-gray-300 px-4 py-2.5 rounded-lg text-sm focus:border-[#dd3333] focus:ring-[#dd3333] w-full"
-                        placeholder="Nhập mã voucher"
+                        min={0}
+                        max={totalPoints}
+                        placeholder="Nhập số điểm muốn dùng"
                       />
+                      <p className="text-xs text-gray-500">1 điểm = 1.000₫</p>
+                    </div>
+                  )}
+                  {!isGuest && (
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-semibold text-[#333333]">
+                        Mã voucher
+                      </label>
+                      <div className="flex gap-3">
+                        <input
+                          type="text"
+                          value={voucherCode}
+                          onChange={(e) => setVoucherCode(e.target.value)}
+                          className="border border-gray-300 px-4 py-2.5 rounded-lg text-sm focus:border-[#dd3333] focus:ring-[#dd3333] w-full"
+                          placeholder="Nhập mã voucher"
+                        />
+                        <button
+                          onClick={handleApplyVoucher}
+                          className="bg-[#dd3333] text-white px-6 py-2.5 rounded-lg hover:bg-[#a71d1d] transition-colors"
+                        >
+                          Áp dụng
+                        </button>
+                      </div>
                       <button
-                        onClick={handleApplyVoucher}
-                        className="bg-[#dd3333] text-white px-6 py-2.5 rounded-lg hover:bg-[#a71d1d] transition-colors"
+                        onClick={() => setShowVoucherModal(true)}
+                        className="mt-2 text-[#dd3333] hover:text-[#a71d1d] text-sm font-medium"
                       >
-                        Áp dụng
+                        Chọn voucher của bạn
                       </button>
                     </div>
-                    <button
-                      onClick={() => setShowVoucherModal(true)}
-                      className="mt-2 text-[#dd3333] hover:text-[#a71d1d] text-sm font-medium"
-                    >
-                      Chọn voucher của bạn
-                    </button>
-                  </div>
+                  )}
                   <div>
                     <label className="text-sm font-semibold text-[#333333]">
                       Địa chỉ giao hàng
@@ -602,13 +635,13 @@ const Cart = () => {
                       <span>Tổng tiền gốc:</span>
                       <span>{totalAmount.toLocaleString()}₫</span>
                     </p>
-                    {discountFromPoints > 0 && (
+                    {!isGuest && discountFromPoints > 0 && (
                       <p className="text-sm text-green-600 flex justify-between">
                         <span>Giảm giá từ điểm:</span>
                         <span>{discountFromPoints.toLocaleString()}₫</span>
                       </p>
                     )}
-                    {discountFromVoucher > 0 && (
+                    {!isGuest && discountFromVoucher > 0 && (
                       <p className="text-sm text-green-600 flex justify-between">
                         <span>Giảm giá từ voucher:</span>
                         <span>

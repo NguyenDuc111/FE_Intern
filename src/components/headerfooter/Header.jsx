@@ -61,16 +61,26 @@ function Header() {
   }, []);
 
   useEffect(() => {
+  if (user && token) {
     reloadCart();
-  }, [user, token]);
+  } else {
+    const guestCart = JSON.parse(localStorage.getItem("guest_cart")) || [];
+    setCartItems(guestCart);
+  }
+}, [user, token]);
 
   useEffect(() => {
-    const handleCartUpdate = () => {
+  const handleCartUpdate = () => {
+    if (user && token) {
       reloadCart();
-    };
-    window.addEventListener("cartUpdated", handleCartUpdate);
-    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
-  }, [user]);
+    } else {
+      const guestCart = JSON.parse(localStorage.getItem("guest_cart")) || [];
+      setCartItems(guestCart);
+    }
+  };
+  window.addEventListener("cartUpdated", handleCartUpdate);
+  return () => window.removeEventListener("cartUpdated", handleCartUpdate);
+}, [user]);
 
   const toggleLogin = () => setShowLogin((prev) => !prev);
 
@@ -287,101 +297,104 @@ function Header() {
           </nav>
 
           <div
-            className="hidden md:flex items-center gap-4 pr-4"
-            ref={dropdownRef}
-          >
-            <div
-              className="relative"
-              onMouseEnter={() => setShowMiniCart(true)}
-              onMouseLeave={() => setShowMiniCart(false)}
+  className="hidden md:flex items-center gap-4 pr-4"
+  ref={dropdownRef}
+>
+  <div
+    className="relative"
+    onMouseEnter={() => setShowMiniCart(true)}
+    onMouseLeave={() => setShowMiniCart(false)}
+  >
+    {showMiniCart && (
+      <div
+        className="absolute right-0 top-full z-50 mt-2 w-[300px]"
+        onMouseEnter={() => setShowMiniCart(true)}
+        onMouseLeave={() => setShowMiniCart(false)}
+      >
+        <MiniCart />
+      </div>
+    )}
+  </div>
+
+  {/* ✅ Luôn hiển thị icon giỏ hàng, kể cả khi chưa đăng nhập */}
+  <Link
+    to="#"
+    onClick={(e) => {
+      e.preventDefault();
+      setTimeout(() => navigate("/cart"), 100);
+    }}
+    className="relative text-black hover:text-[#dd3333]"
+  >
+    <ShoppingCart size={28} />
+    {totalQty > 0 && (
+      <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+        {totalQty}
+      </span>
+    )}
+  </Link>
+
+  {/* Nếu chưa login thì nút đăng nhập */}
+  {!user ? (
+    <button
+      onClick={toggleLogin}
+      className="text-sm font-medium uppercase text-black hover:text-[#dd3333]"
+    >
+      Đăng nhập
+    </button>
+  ) : (
+    <div className="flex items-center gap-4">
+      <div className="relative cursor-pointer -translate-x-2 ml-3">
+        <Notification />
+      </div>
+
+      {/* Dropdown user như cũ */}
+      <div
+        className="cursor-pointer select-none"
+        onClick={() => setDropdownOpen(!isDropdownOpen)}
+      >
+        <div className="flex items-center gap-1 text-sm font-medium uppercase text-black hover:text-[#dd3333] whitespace-nowrap">
+          <span role="img" aria-label="user">
+            👤
+          </span>
+          <span>
+            Xin chào,{" "}
+            {user?.FullName?.split(" ").slice(-1)[0] ||
+              user?.email?.split("@")[0] ||
+              "User"}
+          </span>
+        </div>
+        {isDropdownOpen && (
+          <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md z-50">
+            <button
+              onClick={() => navigate("/profile")}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
             >
-              {showMiniCart && (
-                <div
-                  className="absolute right-0 top-full z-50 mt-2 w-[300px]"
-                  onMouseEnter={() => setShowMiniCart(true)}
-                  onMouseLeave={() => setShowMiniCart(false)}
-                >
-                  <MiniCart />
-                </div>
-              )}
-            </div>
-
-            {!user ? (
-              <button
-                onClick={toggleLogin}
-                className="text-sm font-medium uppercase text-black hover:text-[#dd3333]"
-              >
-                Đăng nhập
-              </button>
-            ) : (
-              <div className="flex items-center gap-4">
-                <div className="relative cursor-pointer -translate-x-2">
-                  <Notification />
-                </div>
-
-                <Link
-                  to="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setTimeout(() => navigate("/cart"), 100);
-                  }}
-                  className="relative text-black hover:text-[#dd3333]"
-                >
-                  <ShoppingCart size={28} />
-                  {totalQty > 0 && (
-                    <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {totalQty}
-                    </span>
-                  )}
-                </Link>
-
-                <div
-                  className="cursor-pointer select-none"
-                  onClick={() => setDropdownOpen(!isDropdownOpen)}
-                >
-                  <div className="flex items-center gap-1 text-sm font-medium uppercase text-black hover:text-[#dd3333] whitespace-nowrap">
-                    <span role="img" aria-label="user">
-                      👤
-                    </span>
-                    <span>
-                      Xin chào,{" "}
-                      {user?.FullName?.split(" ").slice(-1)[0] ||
-                        user?.email?.split("@")[0] ||
-                        "User"}
-                    </span>
-                  </div>
-                  {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md z-50">
-                      <button
-                        onClick={() => navigate("/profile")}
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                      >
-                        Thông tin tài khoản
-                      </button>
-                      <button
-                        onClick={() => navigate("/order")}
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                      >
-                        Lịch sử mua hàng
-                      </button>
-                      <button
-                        onClick={() => navigate("/voucher")}
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                      >
-                        Voucher
-                      </button>
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                      >
-                        Đăng xuất
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+              Thông tin tài khoản
+            </button>
+            <button
+              onClick={() => navigate("/order")}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+            >
+              Lịch sử mua hàng
+            </button>
+            <button
+              onClick={() => navigate("/voucher")}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+            >
+              Voucher
+            </button>
+            <button
+              onClick={handleLogout}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+            >
+              Đăng xuất
+            </button>
           </div>
+        )}
+      </div>
+    </div>
+  )}
+</div>
         </div>
       </header>
       {showLogin && (
