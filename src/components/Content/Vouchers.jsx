@@ -123,8 +123,8 @@ const Vouchers = () => {
           <h2 className="text-4xl text-center font-semibold mb-8 text-red-700 flex items-center justify-center gap-3 sm:text-3xl">
             <FaGift /> Danh Sách Voucher
           </h2>
-          <label className="text-sm font-semibold text-[#333333]">
-            điểm tích lũy của bạn : {totalPoints} điểm
+          <label className="text-lg font-semibold text-[#333333]">
+            Điểm tích lũy của bạn : {totalPoints} điểm
           </label>
           {loading ? (
             <p className="text-center text-white">Đang tải...</p>

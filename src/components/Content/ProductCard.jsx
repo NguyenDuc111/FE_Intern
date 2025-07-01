@@ -91,7 +91,9 @@ function ProductCard({ selectedCategory, sortType, searchQuery }) {
     if (!user) {
       // Guest logic
       const cart = JSON.parse(localStorage.getItem("guest_cart")) || [];
-      const index = cart.findIndex((item) => item.ProductID === product.ProductID);
+      const index = cart.findIndex(
+        (item) => item.ProductID === product.ProductID
+      );
       if (index !== -1) {
         cart[index].Quantity += 1;
       } else {
@@ -181,7 +183,7 @@ function ProductCard({ selectedCategory, sortType, searchQuery }) {
       const timer = setInterval(() => {
         setTimeLeft((prev) => {
           const { hours, minutes, seconds } = prev;
-          
+
           if (seconds > 0) {
             return { ...prev, seconds: seconds - 1 };
           }
@@ -235,7 +237,7 @@ function ProductCard({ selectedCategory, sortType, searchQuery }) {
               (w) => w.Product.ProductID === p.ProductID
             );
             const productType = getProductType(p.ProductID);
-          
+
             return (
               <div
                 key={p.ProductID}
@@ -250,7 +252,7 @@ function ProductCard({ selectedCategory, sortType, searchQuery }) {
                     alt={p.ProductName}
                     className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
                   />
-                  
+
                   {/* Badge loại sản phẩm */}
                   <div className="absolute top-2 left-2 flex flex-col gap-1">
                     {productType === "flashSale" && (
@@ -268,7 +270,8 @@ function ProductCard({ selectedCategory, sortType, searchQuery }) {
                   {/* Giảm giá */}
                   {hasDiscount && (
                     <span className="absolute top-2 right-2 bg-red-600 text-white text-sm font-semibold px-3 py-1 rounded-full shadow-md">
-                      -{Math.round(((p.OldPrice - p.Price) / p.OldPrice) * 100)}%
+                      -{Math.round(((p.OldPrice - p.Price) / p.OldPrice) * 100)}
+                      %
                     </span>
                   )}
 
@@ -279,9 +282,7 @@ function ProductCard({ selectedCategory, sortType, searchQuery }) {
                         <AiFillStar
                           key={i}
                           className={
-                            i < p.Rating
-                              ? "text-yellow-500"
-                              : "text-gray-300"
+                            i < p.Rating ? "text-yellow-500" : "text-gray-300"
                           }
                         />
                       ))}

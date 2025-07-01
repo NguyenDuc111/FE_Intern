@@ -308,7 +308,7 @@ function ProductDetail() {
         </div>
 
         <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6 text-[#dd3333]">Bình luận</h2>
+          <h2 className="text-2xl font-bold mb-6 text-[#dd3333]">Bình Luận</h2>
           {reviews.length > 0 ? (
             <div className="space-y-4">
               {reviews.map((review) => (
@@ -330,13 +330,7 @@ function ProductDetail() {
                     </div>
                   </div>
                   <p className="text-gray-700 mt-2">{review.Comment}</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(review.CreatedAt).toLocaleString("vi-VN", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })}
-                  </p>
+                  
                 </div>
               ))}
             </div>

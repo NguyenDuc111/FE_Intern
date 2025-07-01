@@ -11,23 +11,23 @@ const ChatBot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const chatRef = useRef(null);
   const [showTooltip, setShowTooltip] = useState(false);
-const tooltipTimer = useRef(null);
+  const tooltipTimer = useRef(null);
 
   const API = axios.create({
-    baseURL: "http://localhost:8080/",
+    baseURL: "http://tmdt1.cholimexfood.com.vn/api/",
     timeout: 10000,
   });
 
   const handleMouseEnter = () => {
-  clearTimeout(tooltipTimer.current);
-  setShowTooltip(true);
-};
+    clearTimeout(tooltipTimer.current);
+    setShowTooltip(true);
+  };
 
-const handleMouseLeave = () => {
-  tooltipTimer.current = setTimeout(() => {
-    setShowTooltip(false);
-  }, 5000); // 5 giây sau khi rời chuột
-};
+  const handleMouseLeave = () => {
+    tooltipTimer.current = setTimeout(() => {
+      setShowTooltip(false);
+    }, 5000); // 5 giây sau khi rời chuột
+  };
   const predefinedQuestions = [
     {
       id: "product_info",
@@ -185,29 +185,29 @@ const handleMouseLeave = () => {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 font-sans">
-     <div className="fixed bottom-13 right-6 transform -translate-y-1/2">
-  {!isOpen && (
-  <div
-    className="relative flex items-center gap-3"
-    onMouseEnter={handleMouseEnter}
-    onMouseLeave={handleMouseLeave}
-  >
-    {/* Tooltip chỉ hiển thị khi hover */}
-    {showTooltip && (
-      <div className="absolute right-20 whitespace-nowrap bg-white text-[#dd3333] font-semibold px-3 py-1 rounded-lg shadow-md text-sm transition-all duration-300 animate-fade-in">
-        Hỏi tôi nhé!
-      </div>
-    )}
+      <div className="fixed bottom-13 right-6 transform -translate-y-1/2">
+        {!isOpen && (
+          <div
+            className="relative flex items-center gap-3"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            {/* Tooltip chỉ hiển thị khi hover */}
+            {showTooltip && (
+              <div className="absolute right-20 whitespace-nowrap bg-white text-[#dd3333] font-semibold px-3 py-1 rounded-lg shadow-md text-sm transition-all duration-300 animate-fade-in">
+                Hỏi tôi nhé!
+              </div>
+            )}
 
-    <button
-      onClick={toggleChat}
-      className="group bg-[#dd3333] text-white p-3 rounded-full shadow-xl hover:bg-[#b52828] transition-all duration-300 flex items-center justify-center transform hover:scale-110 w-16 h-16"
-    >
-      <img src={logo} alt="Cholimex Chat" className="w-10 h-10" />
-    </button>
-  </div>
-)}
-</div>
+            <button
+              onClick={toggleChat}
+              className="group bg-[#dd3333] text-white p-3 rounded-full shadow-xl hover:bg-[#b52828] transition-all duration-300 flex items-center justify-center transform hover:scale-110 w-16 h-16"
+            >
+              <img src={logo} alt="Cholimex Chat" className="w-10 h-10" />
+            </button>
+          </div>
+        )}
+      </div>
 
       {isOpen && (
         <div className="bg-white w-full max-w-[400px] sm:max-w-[450px] h-[650px] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200">

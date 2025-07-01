@@ -15,6 +15,7 @@
     "@tailwindcss/vite": "^4.1.4",
     "antd": "^5.25.0",
     "axios": "^1.9.0",
+    "crypto-js": "^4.2.0",
     "framer-motion": "^12.10.1",
     "jwt-decode": "^4.0.0",
     "lodash": "^4.17.21",

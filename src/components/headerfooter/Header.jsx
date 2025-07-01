@@ -14,6 +14,7 @@ import { Menu, X, ShoppingCart } from "lucide-react";
 import MiniCart from "./MiniCart.jsx";
 import Notification from "./Notification";
 
+
 function Header() {
   const [showLogin, setShowLogin] = useState(false);
   const [mode, setMode] = useState("login");
@@ -253,9 +254,9 @@ function Header() {
             {[
               { path: "/home", label: "Trang chủ" },
               { path: "/about", label: "Giới thiệu" },
-              { path: "/Categories", label: "Sản phẩm" },
+              { path: "/categories", label: "Sản phẩm" },
               { path: "/contact", label: "Thư viện ẩm thực" },
-              { path: "/contact", label: "40 năm" },
+              { path: "/contactv", label: "40 năm" },
               ...(isAdmin ? [{ path: "/admin", label: "Admin Panel" }] : []),
             ].map(({ path, label }, idx) => (
               <Link
